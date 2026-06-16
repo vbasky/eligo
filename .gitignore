@@ -3,8 +3,12 @@
 /.vscode
 *~
 
-# Model weights for the `clip` feature — downloaded locally, never committed.
+# Model weights for the `clip`/`sd` features — downloaded locally, never committed.
 /.models
+
+# Generated images from CLI runs.
+/*.png
+/*.ppm
 
 # Cargo.lock IS committed: this workspace ships a binary, so a locked, reproducible
 # dependency graph is what we want. Do not add it here.

@@ -21,6 +21,8 @@ workspace = true
 # Enable the CLIP scorer (--clip-model / --clip-tokenizer). Pulls the ONNX
 # stack in via the library's `clip` feature.
 clip = ["lodestar/clip"]
+# Enable the Stable Diffusion backend (--sd-model-dir / --sd-tokenizer).
+sd = ["lodestar/sd"]
 
 [dependencies]
 lodestar = { workspace = true }

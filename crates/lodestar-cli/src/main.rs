@@ -1,18 +1,24 @@
 //! Command-line interface for lodestar.
 //!
-//! Runs the best-of-N selection loop and reports the chosen candidate. The
-//! default scorer is the deterministic mock; build with `--features clip` and
-//! pass `--clip-model` + `--clip-tokenizer` to select with a real CLIP reward.
-//! `--out` writes the winning image as a binary PPM (no image-encoding
-//! dependency yet).
+//! Runs the best-of-N selection loop and reports the chosen candidate.
+//!
+//! - Backend (the "artist"): the deterministic mock by default; build with
+//!   `--features sd` and pass `--sd-model-dir` + `--sd-tokenizer` for real
+//!   Stable Diffusion images.
+//! - Scorer (the "judge"): the deterministic mock by default; build with
+//!   `--features clip` and pass `--clip-model` + `--clip-tokenizer` for the real
+//!   CLIP reward.
+//!
+//! `--out foo.png` saves the winner (PNG needs the `clip`/`sd` feature; the base
+//! build writes binary PPM).
 
 use std::io::Write as _;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use clap::Parser;
 use lodestar::mock::MockBackend;
-use lodestar::{GenerateConfig, Image, RerollPolicy, Scorer, best_of_n};
+use lodestar::{Backend, GenerateConfig, Image, RerollPolicy, Scorer, best_of_n};
 
 /// Best-of-N image generation that selects the best candidate by measurable reward.
 #[derive(Debug, Parser)]
@@ -33,17 +39,36 @@ struct Cli {
     #[arg(long)]
     reroll_worst: bool,
 
-    /// Write the winning image to this path as a binary PPM.
+    /// Write the winning image here (`.png` with the clip/sd feature, else PPM).
     #[arg(long)]
     out: Option<PathBuf>,
 
-    /// Path to a CLIP `model.onnx` (requires the `clip` feature). With
-    /// `--clip-tokenizer`, scores candidates with the real CLIP reward.
+    /// Stable Diffusion ONNX export directory (requires the `sd` feature).
+    #[cfg(feature = "sd")]
+    #[arg(long, requires = "sd_tokenizer")]
+    sd_model_dir: Option<PathBuf>,
+
+    /// CLIP `tokenizer.json` for the SD backend (requires the `sd` feature).
+    #[cfg(feature = "sd")]
+    #[arg(long, requires = "sd_model_dir")]
+    sd_tokenizer: Option<PathBuf>,
+
+    /// Denoising steps for the SD backend (more = slower, better).
+    #[cfg(feature = "sd")]
+    #[arg(long, default_value_t = 20)]
+    steps: usize,
+
+    /// Classifier-free guidance scale for the SD backend.
+    #[cfg(feature = "sd")]
+    #[arg(long, default_value_t = 7.5)]
+    guidance: f32,
+
+    /// CLIP `model.onnx` for the real scorer (requires the `clip` feature).
     #[cfg(feature = "clip")]
     #[arg(long, requires = "clip_tokenizer")]
     clip_model: Option<PathBuf>,
 
-    /// Path to the CLIP `tokenizer.json` (requires the `clip` feature).
+    /// CLIP `tokenizer.json` for the real scorer (requires the `clip` feature).
     #[cfg(feature = "clip")]
     #[arg(long, requires = "clip_model")]
     clip_tokenizer: Option<PathBuf>,
@@ -65,11 +90,12 @@ fn main() -> Result<()> {
             RerollPolicy::None
         });
 
-    let backend = MockBackend::default();
+    let (backend, backend_name) = select_backend(&cli)?;
     let (scorer, scorer_name) = select_scorer(&cli)?;
-    eprintln!("scorer: {scorer_name}");
+    eprintln!("backend: {backend_name}  |  scorer: {scorer_name}");
 
-    let selection = best_of_n(&backend, scorer.as_ref(), &cfg).context("selection loop failed")?;
+    let selection =
+        best_of_n(backend.as_ref(), scorer.as_ref(), &cfg).context("selection loop failed")?;
 
     println!("scored {} candidate(s):", selection.all.len());
     for (i, c) in selection.all.iter().enumerate() {
@@ -80,11 +106,25 @@ fn main() -> Result<()> {
     println!("chosen: seed={} score={:.4}", best.seed, best.score);
 
     if let Some(path) = cli.out {
-        write_ppm(&best.image, &path).with_context(|| format!("writing {}", path.display()))?;
+        write_image(&best.image, &path).with_context(|| format!("writing {}", path.display()))?;
         println!("wrote {}", path.display());
     }
 
     Ok(())
+}
+
+/// Pick the backend: real Stable Diffusion when built with `--features sd` and
+/// given model paths, otherwise the deterministic mock.
+fn select_backend(cli: &Cli) -> Result<(Box<dyn Backend>, &'static str)> {
+    #[cfg(feature = "sd")]
+    if let (Some(dir), Some(tokenizer)) = (&cli.sd_model_dir, &cli.sd_tokenizer) {
+        let backend = lodestar::SdBackend::from_dir(dir, tokenizer, cli.steps, cli.guidance)
+            .context("loading SD backend")?;
+        return Ok((Box::new(backend), "Stable Diffusion (ONNX Runtime)"));
+    }
+
+    let _ = cli;
+    Ok((Box::new(MockBackend::default()), "mock (deterministic)"))
 }
 
 /// Pick the scorer: the real CLIP reward when built with `--features clip` and
@@ -101,9 +141,19 @@ fn select_scorer(cli: &Cli) -> Result<(Box<dyn Scorer>, &'static str)> {
     Ok((Box::new(lodestar::mock::MockScorer), "mock (deterministic)"))
 }
 
-/// Write an [`Image`] as a binary (P6) PPM — keeps the CLI dependency-free until
-/// a real image encoder is wired in.
-fn write_ppm(image: &Image, path: &std::path::Path) -> Result<()> {
+/// Write the winning image: PNG when the extension is `.png` and an image
+/// encoder is compiled in (clip/sd feature), otherwise binary PPM.
+fn write_image(image: &Image, path: &Path) -> Result<()> {
+    #[cfg(any(feature = "clip", feature = "sd"))]
+    if path.extension().and_then(|e| e.to_str()) == Some("png") {
+        image.save_png(path)?;
+        return Ok(());
+    }
+    write_ppm(image, path)
+}
+
+/// Write an [`Image`] as a binary (P6) PPM — always available, no dependencies.
+fn write_ppm(image: &Image, path: &Path) -> Result<()> {
     let mut f = std::fs::File::create(path)?;
     write!(f, "P6\n{} {}\n255\n", image.width, image.height)?;
     f.write_all(&image.rgb)?;

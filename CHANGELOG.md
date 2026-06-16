@@ -22,6 +22,15 @@ The release workflow extracts the notes for a version from the matching
 - `tests/clip_real.rs`: end-to-end validation against real `clip-vit-base-patch32`
   ONNX weights — the matching image out-scores the other in both directions.
   Ignored by default; driven by `LODESTAR_CLIP_MODEL` / `LODESTAR_CLIP_TOKENIZER`.
+- M2: `SdBackend` — Stable Diffusion txt2img on ONNX Runtime (text encoder +
+  UNet + VAE decoder, hand-rolled DDIM scheduler, classifier-free guidance,
+  seeded reproducible RNG), behind an optional `sd` cargo feature (no new deps
+  over `clip`).
+- CLI `--sd-model-dir` / `--sd-tokenizer` / `--steps` / `--guidance` (CLI `sd`
+  feature) generate real images; `Image::save_png` + `--out foo.png` saves them.
+  `LODESTAR_SD_DEBUG=1` dumps model I/O.
+- `tests/sd_real.rs`: end-to-end validation against a vanilla fp32 SD-1.5 ONNX
+  export. Ignored by default; driven by `LODESTAR_SD_DIR` / `LODESTAR_SD_TOKENIZER`.
 
 ## [0.1.0] - 2026-06-17
 

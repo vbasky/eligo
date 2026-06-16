@@ -29,13 +29,21 @@ end (already true).
   both directions (`tests/clip_real.rs`).
 - **Done.** This is the first time the "best" candidate is meaningfully best.
 
-## M2 — Real backend: Stable Diffusion
+## M2 — Real backend: Stable Diffusion ✅
 
-- A Stable Diffusion backend implementing `Backend` (txt2img, fixed model,
-  CPU-ok for small sizes).
-- Real PNG output (swap the placeholder PPM writer for the `image` crate).
-- **Done = ** `lodestar "<prompt>" -n 4` produces four real images and picks the
-  one CLIP says best matches the prompt.
+- `SdBackend`: a full latent-diffusion txt2img loop on ONNX Runtime (text
+  encoder + UNet + VAE decoder), with a hand-rolled DDIM scheduler,
+  classifier-free guidance, and a reproducible seeded RNG. Same `ort` runtime
+  and CLIP tokenizer as the scorer — the `sd` feature adds no new dependencies.
+- Wired into the CLI (`--sd-model-dir` / `--sd-tokenizer` / `--steps` /
+  `--guidance`); `--out foo.png` saves the winner via the `image` crate.
+- Validated end-to-end against a vanilla fp32 SD-1.5 ONNX export: `lodestar
+  "a photograph of a red apple on a wooden table"` produces a recognizable
+  image (`tests/sd_real.rs` checks shape, reproducibility, seed-sensitivity,
+  non-degeneracy). I/O matched the diffusers convention (UNet `timestep` is
+  `Int64`, hidden 768).
+- **Done.** Combined with M1, `lodestar --features "sd clip" "<prompt>" -n 4
+  --sd-… --clip-…` generates four real images and keeps the one CLIP rates best.
 
 ## M3 — Blend in a quality term (optional, still bounded)
 

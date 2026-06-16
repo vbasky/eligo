@@ -47,6 +47,9 @@ pub mod mock;
 #[cfg(feature = "clip")]
 mod clip;
 
+#[cfg(feature = "sd")]
+mod sd;
+
 pub use backend::{Backend, Image};
 pub use candidate::{Candidate, Selection};
 pub use config::{GenerateConfig, RerollPolicy};
@@ -57,3 +60,6 @@ pub use scorer::Scorer;
 
 #[cfg(feature = "clip")]
 pub use clip::ClipScorer;
+
+#[cfg(feature = "sd")]
+pub use sd::SdBackend;

@@ -41,6 +41,27 @@ just run -- "a lighthouse at dusk" -n 5 --reroll-worst --out winner.ppm
 If you don't have [`just`](https://github.com/casey/just):
 `cargo install just`.
 
+## The full thing: real images, real selection
+
+With both features on, lodestar generates actual Stable Diffusion images and
+keeps the one CLIP judges best:
+
+```bash
+cargo run -p lodestar-cli --features "sd clip" -- \
+  "a photograph of a red apple on a wooden table" -n 4 --steps 20 \
+  --sd-model-dir <sd-onnx-dir> --sd-tokenizer <tokenizer.json> \
+  --clip-model <clip.onnx> --clip-tokenizer <tokenizer.json> \
+  --out winner.png
+```
+
+- **`--features sd`** — the *artist* (`SdBackend`): turns the prompt into images.
+- **`--features clip`** — the *judge* (`ClipScorer`): scores each against the prompt.
+- Together: best-of-N over real images. Either can stay on the mock for a fast,
+  weight-free loop.
+
+Models are standard ONNX exports (a diffusers `text_encoder`/`unet`/`vae_decoder`
+directory for SD; a CLIP `model.onnx`). See [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
 ## The CLIP reward (optional `clip` feature)
 
 The default build uses the deterministic mock scorer. The real reward —
