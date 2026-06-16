@@ -43,6 +43,11 @@ struct Cli {
     #[arg(long)]
     out: Option<PathBuf>,
 
+    /// With --out, also save every candidate (suffixed `_0`, `_1`, … and
+    /// `_best`), so you can see what the judge chose between.
+    #[arg(long)]
+    save_all: bool,
+
     /// Stable Diffusion ONNX export directory (requires the `sd` feature).
     #[cfg(feature = "sd")]
     #[arg(long, requires = "sd_tokenizer")]
@@ -106,11 +111,28 @@ fn main() -> Result<()> {
     println!("chosen: seed={} score={:.4}", best.seed, best.score);
 
     if let Some(path) = cli.out {
-        write_image(&best.image, &path).with_context(|| format!("writing {}", path.display()))?;
-        println!("wrote {}", path.display());
+        if cli.save_all {
+            for (i, c) in selection.all.iter().enumerate() {
+                let p = numbered(&path, i, i == selection.best_index);
+                write_image(&c.image, &p).with_context(|| format!("writing {}", p.display()))?;
+                println!("wrote {}", p.display());
+            }
+        } else {
+            write_image(&best.image, &path)
+                .with_context(|| format!("writing {}", path.display()))?;
+            println!("wrote {}", path.display());
+        }
     }
 
     Ok(())
+}
+
+/// Insert `_<index>` (and `_best`) before the file extension of `path`.
+fn numbered(path: &Path, index: usize, is_best: bool) -> PathBuf {
+    let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("png");
+    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("out");
+    let tag = if is_best { "_best" } else { "" };
+    path.with_file_name(format!("{stem}_{index}{tag}.{ext}"))
 }
 
 /// Pick the backend: real Stable Diffusion when built with `--features sd` and
