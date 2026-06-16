@@ -9,6 +9,15 @@ The release workflow extracts the notes for a version from the matching
 
 ## [Unreleased]
 
+### Added
+
+- `math` module: `cosine_similarity` + `l2_normalize` (the reward arithmetic),
+  unit-tested without any model.
+- M1: `ClipScorer` — a CLIP prompt-alignment `Scorer` on ONNX Runtime (`ort`),
+  behind an optional `clip` cargo feature so the default build stays weight-free.
+  Includes CLIP image preprocessing (resize + center-crop + normalize) and
+  fixed-length tokenization. End-to-end scoring against real weights pending.
+
 ## [0.1.0] - 2026-06-17
 
 ### Added

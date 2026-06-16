@@ -16,7 +16,7 @@
 //!
 //! lodestar is a *selection* library, not a model zoo or an editor. It owns the
 //! loop and the contracts ([`Backend`], [`Scorer`]); concrete model inference
-//! (Stable Diffusion via `candle`) and CLIP scoring are pluggable
+//! (a Stable Diffusion backend, and CLIP scoring via ONNX Runtime) are pluggable
 //! implementations behind those traits. The default build ships a deterministic
 //! mock backend/scorer so the loop is testable without model weights.
 //!
@@ -38,14 +38,22 @@ mod backend;
 mod candidate;
 mod config;
 mod error;
+mod math;
 mod pipeline;
 mod scorer;
 
 pub mod mock;
 
+#[cfg(feature = "clip")]
+mod clip;
+
 pub use backend::{Backend, Image};
 pub use candidate::{Candidate, Selection};
 pub use config::{GenerateConfig, RerollPolicy};
 pub use error::{Error, Result};
+pub use math::{cosine_similarity, l2_normalize};
 pub use pipeline::best_of_n;
 pub use scorer::Scorer;
+
+#[cfg(feature = "clip")]
+pub use clip::ClipScorer;

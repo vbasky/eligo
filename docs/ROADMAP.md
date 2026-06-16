@@ -20,15 +20,17 @@ end (already true).
 ## M1 — Real reward: CLIP prompt-alignment `Scorer`
 
 - A `clip` scorer: embed image + prompt, score = cosine similarity.
-- Inference via `candle` (or `ort`) loading an open CLIP checkpoint.
+- Inference via **ONNX Runtime (`ort`)** loading an open CLIP checkpoint —
+  the same runtime the rest of the ecosystem uses for ONNX vision models.
+- Gated behind a `clip` cargo feature so the default build stays weight-free.
 - **Done = ** on a fixed prompt + a folder of images, ranking matches a
   reference CLIP implementation within tolerance. This is the first time the
   "best" candidate is meaningfully best.
 
-## M2 — Real backend: Stable Diffusion via `candle`
+## M2 — Real backend: Stable Diffusion
 
-- A `candle` SD backend implementing `Backend` (txt2img, fixed model, CPU-ok for
-  small sizes).
+- A Stable Diffusion backend implementing `Backend` (txt2img, fixed model,
+  CPU-ok for small sizes).
 - Real PNG output (swap the placeholder PPM writer for the `image` crate).
 - **Done = ** `lodestar "<prompt>" -n 4` produces four real images and picks the
   one CLIP says best matches the prompt.

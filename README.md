@@ -41,6 +41,30 @@ just run -- "a lighthouse at dusk" -n 5 --reroll-worst --out winner.ppm
 If you don't have [`just`](https://github.com/casey/just):
 `cargo install just`.
 
+## The CLIP reward (optional `clip` feature)
+
+The default build uses the deterministic mock scorer. The real reward —
+`ClipScorer` — scores a candidate by the cosine similarity between the CLIP
+image and text embeddings, run through ONNX Runtime (`ort`). It lives behind a
+cargo feature so the base build stays weight-free:
+
+```bash
+cargo test -p lodestar --features clip   # builds ort + tokenizers; runs the
+                                          # preprocessing/math tests (no weights)
+```
+
+```rust
+use lodestar::{best_of_n, GenerateConfig, ClipScorer};
+
+let scorer = ClipScorer::from_files("model.onnx", "tokenizer.json")?;
+let selection = best_of_n(&backend, &scorer, &GenerateConfig::new("a red bicycle"))?;
+```
+
+It expects a standard Hugging Face CLIP ONNX export (e.g. `clip-vit-base-patch32`)
+whose graph takes `pixel_values`, `input_ids`, `attention_mask` and outputs
+`image_embeds` and `text_embeds`. End-to-end scoring against real weights is the
+next validation step (see [`docs/ROADMAP.md`](docs/ROADMAP.md)).
+
 ## Development
 
 `just check-all` runs the exact gate CI enforces — formatting, clippy
