@@ -48,6 +48,11 @@ struct Cli {
     #[arg(long)]
     save_all: bool,
 
+    /// Blend a no-reference quality score (sharpness/contrast) into the reward,
+    /// in `[0,1]`. 0 = prompt-match only; higher also favours crisp images.
+    #[arg(long, default_value_t = 0.0)]
+    quality_weight: f32,
+
     /// Stable Diffusion ONNX export directory (requires the `sd` feature).
     #[cfg(feature = "sd")]
     #[arg(long, requires = "sd_tokenizer")]
@@ -96,7 +101,11 @@ fn main() -> Result<()> {
         });
 
     let (backend, backend_name) = select_backend(&cli)?;
-    let (scorer, scorer_name) = select_scorer(&cli)?;
+    let (mut scorer, mut scorer_name) = select_scorer(&cli)?;
+    if cli.quality_weight > 0.0 {
+        scorer = Box::new(lodestar::QualityWeighted::new(scorer, cli.quality_weight));
+        scorer_name = "blended with quality";
+    }
     eprintln!("backend: {backend_name}  |  scorer: {scorer_name}");
 
     let selection =

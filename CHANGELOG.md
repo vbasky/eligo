@@ -31,6 +31,9 @@ The release workflow extracts the notes for a version from the matching
   `LODESTAR_SD_DEBUG=1` dumps model I/O.
 - `tests/sd_real.rs`: end-to-end validation against a vanilla fp32 SD-1.5 ONNX
   export. Ignored by default; driven by `LODESTAR_SD_DIR` / `LODESTAR_SD_TOKENIZER`.
+- M3: no-reference quality — `quality_score` + `QualityScorer` (Laplacian
+  sharpness + RMS contrast, parameter-free, in the core), and `QualityWeighted`
+  to blend it with any scorer. CLI `--quality-weight` and `--save-all`.
 
 ## [0.1.0] - 2026-06-17
 

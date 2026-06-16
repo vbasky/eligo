@@ -45,14 +45,22 @@ end (already true).
 - **Done.** Combined with M1, `lodestar --features "sd clip" "<prompt>" -n 4
   --sd-… --clip-…` generates four real images and keeps the one CLIP rates best.
 
-## M3 — Blend in a quality term (optional, still bounded)
+## M3 — Blend in a quality term (optional, still bounded) ✅
 
-- Add a no-reference quality signal (BRISQUE/NIQE) as a second `Scorer`, and a
-  `WeightedScorer` that blends alignment + quality with a fixed weight.
-- This is shared ground with `viser`'s no-reference QC mission — reuse, don't
-  reinvent, if viser exposes it.
-- **Done = ** the chosen candidate optimizes "matches the prompt **and** looks
-  clean," not alignment alone. **Project is feature-complete here.**
+- `QualityScorer` + `quality_score`: a no-reference image-quality signal
+  (Laplacian sharpness + RMS contrast, the no-reference family that BRISQUE/NIQE
+  build on). Parameter-free — no model, no weights — so it lives in the always-on
+  core.
+- `QualityWeighted`: wraps any `Scorer` and blends `(1-w)*base + w*quality`.
+  Exposed on the CLI as `--quality-weight`.
+- Unit-tested: a blurred image scores lower than its sharp original, a flat
+  image scores ~0, blending stays between base and quality.
+- A *reference-calibrated* BRISQUE/NIQE (with a trained model) is deliberately
+  **not** in scope here — that's the standalone "Option B" project (see the
+  ecosystem gap notes). lodestar only needs a sound relative ordering among
+  same-size candidates.
+- **Done.** The chosen candidate can optimize "matches the prompt **and** looks
+  clean," not alignment alone. **Project is feature-complete.**
 
 ## Explicit non-goals (the boundary)
 

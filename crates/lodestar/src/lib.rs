@@ -40,6 +40,7 @@ mod config;
 mod error;
 mod math;
 mod pipeline;
+mod quality;
 mod scorer;
 
 pub mod mock;
@@ -56,6 +57,7 @@ pub use config::{GenerateConfig, RerollPolicy};
 pub use error::{Error, Result};
 pub use math::{cosine_similarity, l2_normalize};
 pub use pipeline::best_of_n;
+pub use quality::{QualityScorer, QualityWeighted, quality_score};
 pub use scorer::Scorer;
 
 #[cfg(feature = "clip")]
