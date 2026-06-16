@@ -1,28 +1,28 @@
-//! # lodestar — *the star you steer by*
+//! # eligo — *I choose* (Latin)
 //!
 //! Best-of-N image generation that **selects** the best candidate by a
 //! measurable reward, rather than returning a single one-shot result.
 //!
-//! A lodestar is the fixed star navigators steer toward. Here the lodestar is
-//! the [`Scorer`] — the reward signal the loop steers candidates toward. Where
-//! `revelo` *reveals* and `viser` *sees*, lodestar *chooses a heading*: given a
-//! prompt, it generates `n` candidate images through a [`Backend`], scores each
-//! against the prompt with the [`Scorer`], and returns the highest-scoring one.
-//! An optional bounded re-roll replaces the single worst candidate once. That
-//! generate → score → select loop is the smallest honest agentic pattern: a
-//! numeric reward drives a decision.
+//! *eligo* is Latin for "I pick out / I choose" — the root of *elect* and
+//! *elite*. Choosing is the tool's one job. Where `revelo` *reveals* and
+//! `viser` *sees*, eligo *chooses*: given a prompt, it generates `n` candidate
+//! images through a [`Backend`], scores each against the prompt with a
+//! [`Scorer`] (the reward), and returns the highest-scoring one. An optional
+//! bounded re-roll replaces the single worst candidate once. That generate →
+//! score → select loop is the smallest honest agentic pattern: a numeric reward
+//! drives a decision.
 //!
 //! ## Scope (deliberately bounded)
 //!
-//! lodestar is a *selection* library, not a model zoo or an editor. It owns the
+//! eligo is a *selection* library, not a model zoo or an editor. It owns the
 //! loop and the contracts ([`Backend`], [`Scorer`]); concrete model inference
 //! (a Stable Diffusion backend, and CLIP scoring via ONNX Runtime) are pluggable
 //! implementations behind those traits. The default build ships a deterministic
 //! mock backend/scorer so the loop is testable without model weights.
 //!
 //! ```
-//! use lodestar::{best_of_n, GenerateConfig};
-//! use lodestar::mock::{MockBackend, MockScorer};
+//! use eligo::{best_of_n, GenerateConfig};
+//! use eligo::mock::{MockBackend, MockScorer};
 //!
 //! let backend = MockBackend::default();
 //! let scorer = MockScorer;

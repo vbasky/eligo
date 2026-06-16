@@ -1,15 +1,15 @@
 [workspace]
 resolver = "3"
 members = [
-    "crates/lodestar",
-    "crates/lodestar-cli",
+    "crates/eligo",
+    "crates/eligo-cli",
 ]
 
 [workspace.package]
 edition = "2024"
 rust-version = "1.85"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/vbasky/lodestar"
+repository = "https://github.com/vbasky/eligo"
 authors = ["Vikram Bhaskaran <vikram.bhaskaran@outlook.com>"]
 
 [workspace.lints.rust]
@@ -31,7 +31,7 @@ codegen-units = 1
 
 [workspace.dependencies]
 # Internal crates
-lodestar = { path = "crates/lodestar", version = "0.1.0" }
+eligo = { path = "crates/eligo", version = "0.1.0" }
 
 # Common third-party — trim to what you actually use.
 anyhow = "1"

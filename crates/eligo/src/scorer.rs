@@ -1,6 +1,6 @@
 //! Reward contract: scoring a candidate against its prompt.
 //!
-//! The [`Scorer`] is the heart of lodestar selection — it turns "which image is
+//! The [`Scorer`] is the heart of eligo selection — it turns "which image is
 //! best?" into a number. The first real implementation is CLIP
 //! prompt-alignment (cosine similarity between the image embedding and the text
 //! embedding); a no-reference quality term (BRISQUE/NIQE) can be blended in

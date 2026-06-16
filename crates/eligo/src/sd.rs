@@ -56,7 +56,7 @@ impl SdBackend {
         guidance_scale: f32,
     ) -> Result<Self> {
         let dir = model_dir.as_ref();
-        let debug = std::env::var_os("LODESTAR_SD_DEBUG").is_some();
+        let debug = std::env::var_os("ELIGO_SD_DEBUG").is_some();
         let load = |rel: &str| -> Result<Session> {
             let path = dir.join(rel);
             let session = Session::builder()

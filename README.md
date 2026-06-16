@@ -1,30 +1,30 @@
-# lodestar
+# eligo
 
-*The star you steer by.* Best-of-N image generation that **selects** the best
-candidate by a measurable reward, instead of returning a single one-shot image.
+*eligo* — Latin for **"I choose."** Best-of-N image generation that **selects**
+the best candidate by a measurable reward, instead of returning a single
+one-shot image.
 
-Given a prompt, lodestar generates `n` candidates through a pluggable
-`Backend`, scores each against the prompt with a `Scorer` (the reward — the
-lodestar), and returns the highest-scoring one. An optional bounded re-roll
-regenerates the single worst candidate once. That generate → score → select
-loop is the smallest honest agentic pattern: a numeric reward drives a
-decision.
+Given a prompt, eligo generates `n` candidates through a pluggable `Backend`,
+scores each against the prompt with a `Scorer` (the reward), and returns the
+highest-scoring one. An optional bounded re-roll regenerates the single worst
+candidate once. That generate → score → select loop is the smallest honest
+agentic pattern: a numeric reward drives a decision.
 
-**Scope is deliberately bounded.** lodestar owns the loop and the contracts
+**Scope is deliberately bounded.** eligo owns the loop and the contracts
 (`Backend`, `Scorer`) — not a model zoo, not an editor, no unbounded refinement.
 The default build ships a deterministic mock backend/scorer so the loop runs
 end-to-end with no model weights. See [`docs/ROADMAP.md`](docs/ROADMAP.md) for
 the milestones (CLIP scorer, Stable Diffusion backend).
 
-[![CI](https://github.com/vbasky/lodestar/actions/workflows/ci.yml/badge.svg)](https://github.com/vbasky/lodestar/actions/workflows/ci.yml)
+[![CI](https://github.com/vbasky/eligo/actions/workflows/ci.yml/badge.svg)](https://github.com/vbasky/eligo/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
 
 ## Layout
 
 ```bash
 crates/
-  lodestar/       # library crate
-  lodestar-cli/   # binary crate (clap), installs as `lodestar`
+  eligo/       # library crate
+  eligo-cli/   # binary crate (clap), installs as `eligo`
 ```
 
 ## Quick start
@@ -43,11 +43,11 @@ If you don't have [`just`](https://github.com/casey/just):
 
 ## The full thing: real images, real selection
 
-With both features on, lodestar generates actual Stable Diffusion images and
+With both features on, eligo generates actual Stable Diffusion images and
 keeps the one CLIP judges best:
 
 ```bash
-cargo run -p lodestar-cli --features "sd clip" -- \
+cargo run -p eligo-cli --features "sd clip" -- \
   "a photograph of a red apple on a wooden table" -n 4 --steps 20 \
   --sd-model-dir <sd-onnx-dir> --sd-tokenizer <tokenizer.json> \
   --clip-model <clip.onnx> --clip-tokenizer <tokenizer.json> \
@@ -70,12 +70,12 @@ image and text embeddings, run through ONNX Runtime (`ort`). It lives behind a
 cargo feature so the base build stays weight-free:
 
 ```bash
-cargo test -p lodestar --features clip   # builds ort + tokenizers; runs the
+cargo test -p eligo --features clip   # builds ort + tokenizers; runs the
                                           # preprocessing/math tests (no weights)
 ```
 
 ```rust
-use lodestar::{best_of_n, GenerateConfig, ClipScorer};
+use eligo::{best_of_n, GenerateConfig, ClipScorer};
 
 let scorer = ClipScorer::from_files("model.onnx", "tokenizer.json")?;
 let selection = best_of_n(&backend, &scorer, &GenerateConfig::new("a red bicycle"))?;
@@ -84,15 +84,15 @@ let selection = best_of_n(&backend, &scorer, &GenerateConfig::new("a red bicycle
 Or from the CLI:
 
 ```bash
-cargo run -p lodestar-cli --features clip -- "a red bicycle" -n 4 \
+cargo run -p eligo-cli --features clip -- "a red bicycle" -n 4 \
   --clip-model model.onnx --clip-tokenizer tokenizer.json
 ```
 
 It expects a standard Hugging Face CLIP ONNX export (e.g. `clip-vit-base-patch32`)
 whose graph takes `pixel_values`, `input_ids`, `attention_mask` and outputs
 `image_embeds` and `text_embeds`. The reward is validated end-to-end against real
-weights in `crates/lodestar/tests/clip_real.rs` (ignored by default; point the
-`LODESTAR_CLIP_MODEL` / `LODESTAR_CLIP_TOKENIZER` env vars at the files and run
+weights in `crates/eligo/tests/clip_real.rs` (ignored by default; point the
+`ELIGO_CLIP_MODEL` / `ELIGO_CLIP_TOKENIZER` env vars at the files and run
 with `--ignored`).
 
 ## Development

@@ -4,9 +4,9 @@
 //! it explicitly once weights are in place:
 //!
 //! ```bash
-//! LODESTAR_CLIP_MODEL=.models/clip/model.onnx \
-//! LODESTAR_CLIP_TOKENIZER=.models/clip/tokenizer.json \
-//!   cargo test -p lodestar --features clip --test clip_real -- --ignored --nocapture
+//! ELIGO_CLIP_MODEL=.models/clip/model.onnx \
+//! ELIGO_CLIP_TOKENIZER=.models/clip/tokenizer.json \
+//!   cargo test -p eligo --features clip --test clip_real -- --ignored --nocapture
 //! ```
 //!
 //! The check is the one that matters for best-of-N: given two candidate images,
@@ -14,7 +14,7 @@
 //! highly. If that ordering holds on real weights, the reward signal is sound.
 #![cfg(feature = "clip")]
 
-use lodestar::{ClipScorer, Image, Scorer};
+use eligo::{ClipScorer, Image, Scorer};
 
 /// A solid `224x224` image of one RGB colour.
 fn solid(rgb: [u8; 3]) -> Image {
@@ -26,16 +26,16 @@ fn solid(rgb: [u8; 3]) -> Image {
 }
 
 fn scorer_from_env() -> Option<ClipScorer> {
-    let model = std::env::var("LODESTAR_CLIP_MODEL").ok()?;
-    let tokenizer = std::env::var("LODESTAR_CLIP_TOKENIZER").ok()?;
+    let model = std::env::var("ELIGO_CLIP_MODEL").ok()?;
+    let tokenizer = std::env::var("ELIGO_CLIP_TOKENIZER").ok()?;
     Some(ClipScorer::from_files(model, tokenizer).expect("load CLIP scorer"))
 }
 
 #[test]
-#[ignore = "needs real CLIP weights via LODESTAR_CLIP_MODEL / LODESTAR_CLIP_TOKENIZER"]
+#[ignore = "needs real CLIP weights via ELIGO_CLIP_MODEL / ELIGO_CLIP_TOKENIZER"]
 fn reward_prefers_the_matching_image() {
     let Some(scorer) = scorer_from_env() else {
-        eprintln!("skipping: LODESTAR_CLIP_MODEL / LODESTAR_CLIP_TOKENIZER not set");
+        eprintln!("skipping: ELIGO_CLIP_MODEL / ELIGO_CLIP_TOKENIZER not set");
         return;
     };
 

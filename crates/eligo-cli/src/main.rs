@@ -1,4 +1,4 @@
-//! Command-line interface for lodestar.
+//! Command-line interface for eligo.
 //!
 //! Runs the best-of-N selection loop and reports the chosen candidate.
 //!
@@ -17,12 +17,12 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use lodestar::mock::MockBackend;
-use lodestar::{Backend, GenerateConfig, Image, RerollPolicy, Scorer, best_of_n};
+use eligo::mock::MockBackend;
+use eligo::{Backend, GenerateConfig, Image, RerollPolicy, Scorer, best_of_n};
 
 /// Best-of-N image generation that selects the best candidate by measurable reward.
 #[derive(Debug, Parser)]
-#[command(name = "lodestar", version, about)]
+#[command(name = "eligo", version, about)]
 struct Cli {
     /// Text prompt to generate from.
     prompt: String,
@@ -103,7 +103,7 @@ fn main() -> Result<()> {
     let (backend, backend_name) = select_backend(&cli)?;
     let (mut scorer, mut scorer_name) = select_scorer(&cli)?;
     if cli.quality_weight > 0.0 {
-        scorer = Box::new(lodestar::QualityWeighted::new(scorer, cli.quality_weight));
+        scorer = Box::new(eligo::QualityWeighted::new(scorer, cli.quality_weight));
         scorer_name = "blended with quality";
     }
     eprintln!("backend: {backend_name}  |  scorer: {scorer_name}");
@@ -149,7 +149,7 @@ fn numbered(path: &Path, index: usize, is_best: bool) -> PathBuf {
 fn select_backend(cli: &Cli) -> Result<(Box<dyn Backend>, &'static str)> {
     #[cfg(feature = "sd")]
     if let (Some(dir), Some(tokenizer)) = (&cli.sd_model_dir, &cli.sd_tokenizer) {
-        let backend = lodestar::SdBackend::from_dir(dir, tokenizer, cli.steps, cli.guidance)
+        let backend = eligo::SdBackend::from_dir(dir, tokenizer, cli.steps, cli.guidance)
             .context("loading SD backend")?;
         return Ok((Box::new(backend), "Stable Diffusion (ONNX Runtime)"));
     }
@@ -164,12 +164,12 @@ fn select_scorer(cli: &Cli) -> Result<(Box<dyn Scorer>, &'static str)> {
     #[cfg(feature = "clip")]
     if let (Some(model), Some(tokenizer)) = (&cli.clip_model, &cli.clip_tokenizer) {
         let scorer =
-            lodestar::ClipScorer::from_files(model, tokenizer).context("loading CLIP scorer")?;
+            eligo::ClipScorer::from_files(model, tokenizer).context("loading CLIP scorer")?;
         return Ok((Box::new(scorer), "CLIP (ONNX Runtime)"));
     }
 
     let _ = cli;
-    Ok((Box::new(lodestar::mock::MockScorer), "mock (deterministic)"))
+    Ok((Box::new(eligo::mock::MockScorer), "mock (deterministic)"))
 }
 
 /// Write the winning image: PNG when the extension is `.png` and an image

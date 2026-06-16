@@ -10,7 +10,7 @@
 //! (it uses Laplacian sharpness + local contrast — the building blocks of
 //! BRISQUE/NIQE). It needs no model and no weights, so it lives in the core,
 //! always available. A fully reference-calibrated BRISQUE/NIQE (with a trained
-//! model) is tracked separately as its own bounded project; lodestar only needs
+//! model) is tracked separately as its own bounded project; eligo only needs
 //! a sound relative ordering among same-size candidates, which this provides.
 
 use crate::{Image, Result, Scorer};

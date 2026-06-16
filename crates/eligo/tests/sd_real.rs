@@ -4,20 +4,20 @@
 //! with a diffusers ONNX export directory and the CLIP tokenizer:
 //!
 //! ```bash
-//! LODESTAR_SD_DIR=.models/sd \
-//! LODESTAR_SD_TOKENIZER=.models/clip/tokenizer.json \
-//!   cargo test -p lodestar --features sd --test sd_real -- --ignored --nocapture
+//! ELIGO_SD_DIR=.models/sd \
+//! ELIGO_SD_TOKENIZER=.models/clip/tokenizer.json \
+//!   cargo test -p eligo --features sd --test sd_real -- --ignored --nocapture
 //! ```
 //!
 //! A few denoising steps is enough to prove the pipeline produces a real,
 //! seed-dependent image (not noise, not a constant) — quality scales with steps.
 #![cfg(feature = "sd")]
 
-use lodestar::{Backend, SdBackend};
+use eligo::{Backend, SdBackend};
 
 fn backend_from_env(steps: usize) -> Option<SdBackend> {
-    let dir = std::env::var("LODESTAR_SD_DIR").ok()?;
-    let tokenizer = std::env::var("LODESTAR_SD_TOKENIZER").ok()?;
+    let dir = std::env::var("ELIGO_SD_DIR").ok()?;
+    let tokenizer = std::env::var("ELIGO_SD_TOKENIZER").ok()?;
     Some(SdBackend::from_dir(dir, tokenizer, steps, 7.5).expect("load SD backend"))
 }
 
@@ -32,10 +32,10 @@ fn distinct_fraction(rgb: &[u8]) -> f32 {
 }
 
 #[test]
-#[ignore = "needs real SD ONNX weights via LODESTAR_SD_DIR / LODESTAR_SD_TOKENIZER"]
+#[ignore = "needs real SD ONNX weights via ELIGO_SD_DIR / ELIGO_SD_TOKENIZER"]
 fn generates_a_real_seed_dependent_image() {
     let Some(backend) = backend_from_env(6) else {
-        eprintln!("skipping: LODESTAR_SD_DIR / LODESTAR_SD_TOKENIZER not set");
+        eprintln!("skipping: ELIGO_SD_DIR / ELIGO_SD_TOKENIZER not set");
         return;
     };
 

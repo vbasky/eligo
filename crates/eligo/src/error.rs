@@ -1,4 +1,4 @@
-//! Error type for lodestar.
+//! Error type for eligo.
 
 /// Convenience alias for results in this crate.
 pub type Result<T> = std::result::Result<T, Error>;

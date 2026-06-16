@@ -1,4 +1,4 @@
-# lodestar developer tasks — `just` command runner
+# eligo developer tasks — `just` command runner
 
 _default:
     @just --list
@@ -44,7 +44,7 @@ check-all: fmt-check
 
 # Run the CLI, passing through args:  just run -- 2 3
 run *args:
-    cargo run -p lodestar-cli -- {{args}}
+    cargo run -p eligo-cli -- {{args}}
 
 # Audit advisories + licenses + bans (requires: cargo install cargo-deny)
 deny:

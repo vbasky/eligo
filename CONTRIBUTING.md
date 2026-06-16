@@ -1,4 +1,4 @@
-# Contributing to lodestar
+# Contributing to eligo
 
 Thanks for contributing! This project keeps the dev loop simple and the `main`
 branch always green.
@@ -6,8 +6,8 @@ branch always green.
 ## Setup
 
 ```bash
-git clone https://github.com/vbasky/lodestar.git
-cd lodestar
+git clone https://github.com/vbasky/eligo.git
+cd eligo
 just setup   # points git at .githooks (pre-commit auto-formats staged code)
 ```
 

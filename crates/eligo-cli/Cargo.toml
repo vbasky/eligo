@@ -1,17 +1,17 @@
 [package]
-name = "lodestar-cli"
+name = "eligo-cli"
 version = "0.1.0"
-description = "Command-line interface for lodestar."
+description = "Command-line interface for eligo."
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
 
-# The binary is named after the project (not `-cli`), so `lodestar ...`
+# The binary is named after the project (not `-cli`), so `eligo ...`
 # is the command users run. CI archives this binary by repository name.
 [[bin]]
-name = "lodestar"
+name = "eligo"
 path = "src/main.rs"
 
 [lints]
@@ -20,12 +20,12 @@ workspace = true
 [features]
 # Enable the CLIP scorer (--clip-model / --clip-tokenizer). Pulls the ONNX
 # stack in via the library's `clip` feature.
-clip = ["lodestar/clip"]
+clip = ["eligo/clip"]
 # Enable the Stable Diffusion backend (--sd-model-dir / --sd-tokenizer).
-sd = ["lodestar/sd"]
+sd = ["eligo/sd"]
 
 [dependencies]
-lodestar = { workspace = true }
+eligo = { workspace = true }
 anyhow.workspace = true
 clap.workspace = true
 tracing.workspace = true

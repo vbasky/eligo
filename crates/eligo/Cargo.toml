@@ -1,5 +1,5 @@
 [package]
-name = "lodestar"
+name = "eligo"
 version = "0.1.0"
 description = "Best-of-N image generation that selects the best candidate by measurable reward."
 edition.workspace = true
