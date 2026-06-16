@@ -17,15 +17,17 @@ complete at M3. Nothing here is open-ended.
 **Done = ** loop is reproducible, validated, lint-clean, and demonstrable end to
 end (already true).
 
-## M1 — Real reward: CLIP prompt-alignment `Scorer`
+## M1 — Real reward: CLIP prompt-alignment `Scorer` ✅
 
-- A `clip` scorer: embed image + prompt, score = cosine similarity.
+- `ClipScorer`: embeds image + prompt, score = cosine similarity.
 - Inference via **ONNX Runtime (`ort`)** loading an open CLIP checkpoint —
   the same runtime the rest of the ecosystem uses for ONNX vision models.
 - Gated behind a `clip` cargo feature so the default build stays weight-free.
-- **Done = ** on a fixed prompt + a folder of images, ranking matches a
-  reference CLIP implementation within tolerance. This is the first time the
-  "best" candidate is meaningfully best.
+- Wired into the CLI (`--clip-model` / `--clip-tokenizer`) and validated
+  end-to-end against real `clip-vit-base-patch32` ONNX weights: given two
+  candidate images and a prompt, the matching image out-scores the other in
+  both directions (`tests/clip_real.rs`).
+- **Done.** This is the first time the "best" candidate is meaningfully best.
 
 ## M2 — Real backend: Stable Diffusion
 

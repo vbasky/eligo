@@ -1,17 +1,18 @@
 //! Command-line interface for lodestar.
 //!
-//! Runs the best-of-N selection loop and reports the chosen candidate. Until
-//! the `candle` backend lands, it uses the deterministic mock backend/scorer so
-//! the loop is exercisable end-to-end; `--out` writes the winning image as a
-//! binary PPM (no image-encoding dependency yet).
+//! Runs the best-of-N selection loop and reports the chosen candidate. The
+//! default scorer is the deterministic mock; build with `--features clip` and
+//! pass `--clip-model` + `--clip-tokenizer` to select with a real CLIP reward.
+//! `--out` writes the winning image as a binary PPM (no image-encoding
+//! dependency yet).
 
 use std::io::Write as _;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use lodestar::mock::{MockBackend, MockScorer};
-use lodestar::{GenerateConfig, Image, RerollPolicy, best_of_n};
+use lodestar::mock::MockBackend;
+use lodestar::{GenerateConfig, Image, RerollPolicy, Scorer, best_of_n};
 
 /// Best-of-N image generation that selects the best candidate by measurable reward.
 #[derive(Debug, Parser)]
@@ -35,6 +36,17 @@ struct Cli {
     /// Write the winning image to this path as a binary PPM.
     #[arg(long)]
     out: Option<PathBuf>,
+
+    /// Path to a CLIP `model.onnx` (requires the `clip` feature). With
+    /// `--clip-tokenizer`, scores candidates with the real CLIP reward.
+    #[cfg(feature = "clip")]
+    #[arg(long, requires = "clip_tokenizer")]
+    clip_model: Option<PathBuf>,
+
+    /// Path to the CLIP `tokenizer.json` (requires the `clip` feature).
+    #[cfg(feature = "clip")]
+    #[arg(long, requires = "clip_model")]
+    clip_tokenizer: Option<PathBuf>,
 }
 
 fn main() -> Result<()> {
@@ -54,8 +66,10 @@ fn main() -> Result<()> {
         });
 
     let backend = MockBackend::default();
-    let scorer = MockScorer;
-    let selection = best_of_n(&backend, &scorer, &cfg).context("selection loop failed")?;
+    let (scorer, scorer_name) = select_scorer(&cli)?;
+    eprintln!("scorer: {scorer_name}");
+
+    let selection = best_of_n(&backend, scorer.as_ref(), &cfg).context("selection loop failed")?;
 
     println!("scored {} candidate(s):", selection.all.len());
     for (i, c) in selection.all.iter().enumerate() {
@@ -71,6 +85,20 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Pick the scorer: the real CLIP reward when built with `--features clip` and
+/// given model paths, otherwise the deterministic mock.
+fn select_scorer(cli: &Cli) -> Result<(Box<dyn Scorer>, &'static str)> {
+    #[cfg(feature = "clip")]
+    if let (Some(model), Some(tokenizer)) = (&cli.clip_model, &cli.clip_tokenizer) {
+        let scorer =
+            lodestar::ClipScorer::from_files(model, tokenizer).context("loading CLIP scorer")?;
+        return Ok((Box::new(scorer), "CLIP (ONNX Runtime)"));
+    }
+
+    let _ = cli;
+    Ok((Box::new(lodestar::mock::MockScorer), "mock (deterministic)"))
 }
 
 /// Write an [`Image`] as a binary (P6) PPM — keeps the CLI dependency-free until

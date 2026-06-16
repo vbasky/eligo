@@ -17,6 +17,11 @@ path = "src/main.rs"
 [lints]
 workspace = true
 
+[features]
+# Enable the CLIP scorer (--clip-model / --clip-tokenizer). Pulls the ONNX
+# stack in via the library's `clip` feature.
+clip = ["lodestar/clip"]
+
 [dependencies]
 lodestar = { workspace = true }
 anyhow.workspace = true

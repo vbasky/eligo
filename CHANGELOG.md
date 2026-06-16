@@ -16,7 +16,12 @@ The release workflow extracts the notes for a version from the matching
 - M1: `ClipScorer` — a CLIP prompt-alignment `Scorer` on ONNX Runtime (`ort`),
   behind an optional `clip` cargo feature so the default build stays weight-free.
   Includes CLIP image preprocessing (resize + center-crop + normalize) and
-  fixed-length tokenization. End-to-end scoring against real weights pending.
+  fixed-length tokenization.
+- CLI `--clip-model` / `--clip-tokenizer` flags (CLI `clip` feature) to select
+  candidates with the real CLIP reward instead of the mock.
+- `tests/clip_real.rs`: end-to-end validation against real `clip-vit-base-patch32`
+  ONNX weights — the matching image out-scores the other in both directions.
+  Ignored by default; driven by `LODESTAR_CLIP_MODEL` / `LODESTAR_CLIP_TOKENIZER`.
 
 ## [0.1.0] - 2026-06-17
 

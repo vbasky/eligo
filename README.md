@@ -14,14 +14,14 @@ decision.
 (`Backend`, `Scorer`) — not a model zoo, not an editor, no unbounded refinement.
 The default build ships a deterministic mock backend/scorer so the loop runs
 end-to-end with no model weights. See [`docs/ROADMAP.md`](docs/ROADMAP.md) for
-the milestones (candle Stable Diffusion backend, CLIP scorer).
+the milestones (CLIP scorer, Stable Diffusion backend).
 
 [![CI](https://github.com/vbasky/lodestar/actions/workflows/ci.yml/badge.svg)](https://github.com/vbasky/lodestar/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
 
 ## Layout
 
-```
+```bash
 crates/
   lodestar/       # library crate
   lodestar-cli/   # binary crate (clap), installs as `lodestar`
@@ -60,10 +60,19 @@ let scorer = ClipScorer::from_files("model.onnx", "tokenizer.json")?;
 let selection = best_of_n(&backend, &scorer, &GenerateConfig::new("a red bicycle"))?;
 ```
 
+Or from the CLI:
+
+```bash
+cargo run -p lodestar-cli --features clip -- "a red bicycle" -n 4 \
+  --clip-model model.onnx --clip-tokenizer tokenizer.json
+```
+
 It expects a standard Hugging Face CLIP ONNX export (e.g. `clip-vit-base-patch32`)
 whose graph takes `pixel_values`, `input_ids`, `attention_mask` and outputs
-`image_embeds` and `text_embeds`. End-to-end scoring against real weights is the
-next validation step (see [`docs/ROADMAP.md`](docs/ROADMAP.md)).
+`image_embeds` and `text_embeds`. The reward is validated end-to-end against real
+weights in `crates/lodestar/tests/clip_real.rs` (ignored by default; point the
+`LODESTAR_CLIP_MODEL` / `LODESTAR_CLIP_TOKENIZER` env vars at the files and run
+with `--ignored`).
 
 ## Development
 

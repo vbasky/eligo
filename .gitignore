@@ -3,5 +3,8 @@
 /.vscode
 *~
 
+# Model weights for the `clip` feature — downloaded locally, never committed.
+/.models
+
 # Cargo.lock IS committed: this workspace ships a binary, so a locked, reproducible
 # dependency graph is what we want. Do not add it here.
