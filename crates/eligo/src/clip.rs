@@ -1,9 +1,14 @@
-//! CLIP prompt-alignment [`Scorer`] — the first *real* reward (M1).
+//! CLIP embeddings on ONNX Runtime — the reusable foundation for both the
+//! prompt-alignment reward (M1) and image↔image similarity (M4).
 //!
-//! Scores a candidate by how well its image matches the prompt, using a CLIP
-//! model run through ONNX Runtime (`ort`) — the same inference runtime the rest
-//! of the ecosystem uses for ONNX vision models. The reward is the cosine
-//! similarity between the (L2-normalized) image and text embeddings.
+//! [`ClipEmbedder`] turns an image or a text prompt into an L2-normalized
+//! embedding vector. Two consumers build on it:
+//!
+//! - [`ClipScorer`] (a [`Scorer`]): cosine(image, text) — "does this match the
+//!   words?" — used by best-of-N selection.
+//! - similarity / recommendations: cosine(image, image) via
+//!   [`ClipEmbedder::embed_image`] + [`crate::cosine_similarity`], or the
+//!   convenience [`ClipEmbedder::image_similarity`].
 //!
 //! Gated behind the `clip` cargo feature so the default build needs no model
 //! weights and no native runtime.
@@ -13,8 +18,9 @@
 //! A standard Hugging Face CLIP ONNX export (e.g. `clip-vit-base-patch32`) with
 //! a single graph taking `pixel_values` (`1×3×224×224` f32), `input_ids` and
 //! `attention_mask` (`1×ctx` i64), and producing `image_embeds` and
-//! `text_embeds` outputs. Point [`ClipScorer::from_files`] at the exported
-//! `model.onnx` and its `tokenizer.json`.
+//! `text_embeds` outputs. The `image_embeds` output depends only on the pixels
+//! and `text_embeds` only on the tokens, so [`ClipEmbedder::embed_image`] feeds
+//! a dummy prompt and [`ClipEmbedder::embed_text`] feeds a blank image.
 
 use std::path::Path;
 use std::sync::Mutex;
@@ -36,16 +42,16 @@ const CTX_LEN: usize = 77;
 /// CLIP end-of-text / padding token id.
 const EOT_TOKEN: i64 = 49407;
 
-/// A [`Scorer`] backed by a CLIP model running on ONNX Runtime.
-pub struct ClipScorer {
-    // `Session::run` needs unique access; a Mutex lets `score(&self, ..)` satisfy
-    // that while keeping `ClipScorer` `Send + Sync` for use across workers.
+/// Turns images and prompts into L2-normalized CLIP embeddings.
+pub struct ClipEmbedder {
+    // `Session::run` needs unique access; a Mutex keeps `&self` methods usable
+    // while leaving the embedder `Send + Sync` for use across workers.
     session: Mutex<Session>,
     tokenizer: Tokenizer,
 }
 
-impl ClipScorer {
-    /// Load a CLIP scorer from an ONNX `model.onnx` and its `tokenizer.json`.
+impl ClipEmbedder {
+    /// Load an embedder from an ONNX `model.onnx` and its `tokenizer.json`.
     pub fn from_files(model: impl AsRef<Path>, tokenizer: impl AsRef<Path>) -> Result<Self> {
         let session = Session::builder()
             .and_then(|mut b| b.commit_from_file(model.as_ref()))
@@ -53,6 +59,44 @@ impl ClipScorer {
         let tokenizer = Tokenizer::from_file(tokenizer.as_ref())
             .map_err(|e| Error::Scorer(format!("loading CLIP tokenizer: {e}")))?;
         Ok(Self { session: Mutex::new(session), tokenizer })
+    }
+
+    /// Embed an image into an L2-normalized vector (the `image_embeds` output).
+    pub fn embed_image(&self, image: &Image) -> Result<Vec<f32>> {
+        let (ids, mask) = self.tokenize("")?;
+        let mut outs = self.run(preprocess(image)?, ids, mask, &["image_embeds"])?;
+        let mut v = outs.remove(0);
+        l2_normalize(&mut v);
+        Ok(v)
+    }
+
+    /// Embed a text prompt into an L2-normalized vector (the `text_embeds`
+    /// output).
+    pub fn embed_text(&self, text: &str) -> Result<Vec<f32>> {
+        let (ids, mask) = self.tokenize(text)?;
+        let blank = Array4::<f32>::zeros((1, 3, IMAGE_SIZE as usize, IMAGE_SIZE as usize));
+        let mut outs = self.run(blank, ids, mask, &["text_embeds"])?;
+        let mut v = outs.remove(0);
+        l2_normalize(&mut v);
+        Ok(v)
+    }
+
+    /// Embed both an image and a prompt in a single model run, returning
+    /// `(image_embed, text_embed)`, each L2-normalized. More efficient than
+    /// calling [`Self::embed_image`] and [`Self::embed_text`] separately.
+    pub fn embed_both(&self, text: &str, image: &Image) -> Result<(Vec<f32>, Vec<f32>)> {
+        let (ids, mask) = self.tokenize(text)?;
+        let mut outs = self.run(preprocess(image)?, ids, mask, &["image_embeds", "text_embeds"])?;
+        let mut txt = outs.remove(1);
+        let mut img = outs.remove(0);
+        l2_normalize(&mut img);
+        l2_normalize(&mut txt);
+        Ok((img, txt))
+    }
+
+    /// Cosine similarity between two images, in `[-1, 1]` (1 = identical).
+    pub fn image_similarity(&self, a: &Image, b: &Image) -> Result<f32> {
+        Ok(cosine_similarity(&self.embed_image(a)?, &self.embed_image(b)?))
     }
 
     /// Tokenize `prompt` into fixed-length `(input_ids, attention_mask)` rows,
@@ -72,13 +116,16 @@ impl ClipScorer {
         }
         Ok((input_ids, attention))
     }
-}
 
-impl Scorer for ClipScorer {
-    fn score(&self, prompt: &str, image: &Image) -> Result<f32> {
-        let pixel_values = preprocess(image)?;
-        let (input_ids, attention_mask) = self.tokenize(prompt)?;
-
+    /// Run the model once and extract the requested named outputs as owned
+    /// vectors (extraction happens while the session lock is held).
+    fn run(
+        &self,
+        pixel_values: Array4<f32>,
+        input_ids: Array2<i64>,
+        attention_mask: Array2<i64>,
+        wants: &[&str],
+    ) -> Result<Vec<Vec<f32>>> {
         let pv = Tensor::from_array(pixel_values)
             .map_err(|e| Error::Scorer(format!("pixel tensor: {e}")))?;
         let ids = Tensor::from_array(input_ids)
@@ -95,11 +142,30 @@ impl Scorer for ClipScorer {
                 "attention_mask" => mask,
             ])
             .map_err(|e| Error::Scorer(format!("CLIP inference: {e}")))?;
+        wants.iter().map(|name| extract_vec(&outputs, name)).collect()
+    }
+}
 
-        let mut image_embed = extract_vec(&outputs, "image_embeds")?;
-        let mut text_embed = extract_vec(&outputs, "text_embeds")?;
-        l2_normalize(&mut image_embed);
-        l2_normalize(&mut text_embed);
+/// A [`Scorer`] backed by a [`ClipEmbedder`]: reward = cosine(image, text).
+pub struct ClipScorer {
+    embedder: ClipEmbedder,
+}
+
+impl ClipScorer {
+    /// Load a CLIP scorer from an ONNX `model.onnx` and its `tokenizer.json`.
+    pub fn from_files(model: impl AsRef<Path>, tokenizer: impl AsRef<Path>) -> Result<Self> {
+        Ok(Self { embedder: ClipEmbedder::from_files(model, tokenizer)? })
+    }
+
+    /// Borrow the underlying embedder (e.g. for similarity queries).
+    pub fn embedder(&self) -> &ClipEmbedder {
+        &self.embedder
+    }
+}
+
+impl Scorer for ClipScorer {
+    fn score(&self, prompt: &str, image: &Image) -> Result<f32> {
+        let (image_embed, text_embed) = self.embedder.embed_both(prompt, image)?;
         Ok(cosine_similarity(&image_embed, &text_embed))
     }
 }

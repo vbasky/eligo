@@ -60,7 +60,24 @@ end (already true).
   ecosystem gap notes). eligo only needs a sound relative ordering among
   same-size candidates.
 - **Done.** The chosen candidate can optimize "matches the prompt **and** looks
-  clean," not alignment alone. **Project is feature-complete.**
+  clean," not alignment alone.
+
+## M4 — Reusable embeddings + image↔image similarity ✅
+
+A natural extension once CLIP was in place: the same embeddings that score
+prompt-match also measure *image-to-image* similarity — the foundation for
+"more like this" and content-based recommendations.
+
+- `ClipEmbedder` factored out of `ClipScorer`: `embed_image` / `embed_text`
+  (L2-normalized vectors), `embed_both` (one run for scoring), and
+  `image_similarity` (cosine of two images). `ClipScorer` now builds on it.
+- `Image::open` (load any format) so the CLI can read existing files.
+- CLI restructured into subcommands: `generate` (best-of-N) and `similar`
+  (rank a folder against a query image). Validated on real images — the query
+  self-matches at exactly 1.0000.
+- **Boundary:** eligo provides *embeddings + similarity*. Corpus storage, the
+  nearest-neighbour index (e.g. HNSW at scale), and per-user recommendations
+  belong to whatever catalogue consumes eligo — not here.
 
 ## Explicit non-goals (the boundary)
 

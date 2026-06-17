@@ -61,7 +61,7 @@ pub use quality::{QualityScorer, QualityWeighted, quality_score};
 pub use scorer::Scorer;
 
 #[cfg(feature = "clip")]
-pub use clip::ClipScorer;
+pub use clip::{ClipEmbedder, ClipScorer};
 
 #[cfg(feature = "sd")]
 pub use sd::SdBackend;

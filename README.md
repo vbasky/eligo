@@ -35,8 +35,11 @@ just build        # build the workspace
 just test         # run all tests
 
 # Generate 5 candidates with the mock backend, pick the best, write the winner:
-just run -- "a lighthouse at dusk" -n 5 --reroll-worst --out winner.ppm
+just run -- generate "a lighthouse at dusk" -n 5 --reroll-worst --out winner.ppm
 ```
+
+The CLI has two subcommands: `generate` (best-of-N) and `similar`
+(find look-alike images — see below).
 
 If you don't have [`just`](https://github.com/casey/just):
 `cargo install just`.
@@ -47,7 +50,7 @@ With both features on, eligo generates actual Stable Diffusion images and
 keeps the one CLIP judges best:
 
 ```bash
-cargo run -p eligo-cli --features "sd clip" -- \
+cargo run -p eligo-cli --features "sd clip" -- generate \
   "a photograph of a red apple on a wooden table" -n 4 --steps 20 \
   --sd-model-dir <sd-onnx-dir> --sd-tokenizer <tokenizer.json> \
   --clip-model <clip.onnx> --clip-tokenizer <tokenizer.json> \
@@ -84,7 +87,7 @@ let selection = best_of_n(&backend, &scorer, &GenerateConfig::new("a red bicycle
 Or from the CLI:
 
 ```bash
-cargo run -p eligo-cli --features clip -- "a red bicycle" -n 4 \
+cargo run -p eligo-cli --features clip -- generate "a red bicycle" -n 4 \
   --clip-model model.onnx --clip-tokenizer tokenizer.json
 ```
 
@@ -94,6 +97,40 @@ whose graph takes `pixel_values`, `input_ids`, `attention_mask` and outputs
 weights in `crates/eligo/tests/clip_real.rs` (ignored by default; point the
 `ELIGO_CLIP_MODEL` / `ELIGO_CLIP_TOKENIZER` env vars at the files and run
 with `--ignored`).
+
+## Find similar images (`similar`, needs `clip`)
+
+The same CLIP embeddings that judge prompt-match also power *image↔image*
+similarity — the basis for "more like this" and content-based recommendations.
+`ClipEmbedder::embed_image` turns an image into a vector; nearby vectors are
+look-alikes. The `similar` subcommand ranks a folder against a query image:
+
+```bash
+cargo run -p eligo-cli --features clip -- similar \
+  query.png ./photos -k 5 \
+  --clip-model model.onnx --clip-tokenizer tokenizer.json
+```
+
+```text
+most similar to query.png:
+  1.0000  ./photos/query.png      # itself
+  0.9238  ./photos/other_a.png
+  0.9101  ./photos/other_b.png
+```
+
+Library-side, the building block is reusable:
+
+```rust
+use eligo::ClipEmbedder;
+
+let embedder = ClipEmbedder::from_files("model.onnx", "tokenizer.json")?;
+let vec = embedder.embed_image(&image)?;          // image → embedding
+let sim = embedder.image_similarity(&a, &b)?;     // cosine, in [-1, 1]
+```
+
+An external catalogue can embed each asset once, store the vectors, and serve
+nearest-neighbour lookups — eligo provides the embedding + similarity; storage,
+indexing, and per-user recommendations belong to the catalogue layer.
 
 ## Development
 

@@ -1,22 +1,19 @@
 //! Command-line interface for eligo.
 //!
-//! Runs the best-of-N selection loop and reports the chosen candidate.
+//! Two subcommands:
 //!
-//! - Backend (the "artist"): the deterministic mock by default; build with
-//!   `--features sd` and pass `--sd-model-dir` + `--sd-tokenizer` for real
-//!   Stable Diffusion images.
-//! - Scorer (the "judge"): the deterministic mock by default; build with
-//!   `--features clip` and pass `--clip-model` + `--clip-tokenizer` for the real
-//!   CLIP reward.
-//!
-//! `--out foo.png` saves the winner (PNG needs the `clip`/`sd` feature; the base
-//! build writes binary PPM).
+//! - `generate` — best-of-N: make N images and keep the one the judge rates
+//!   best. Backend (the "artist") and scorer (the "judge") are the mock by
+//!   default; build with `--features sd` / `--features clip` and pass model
+//!   paths for real Stable Diffusion and CLIP.
+//! - `similar` — rank images in a directory by visual similarity to a query
+//!   image, using CLIP embeddings (requires `--features clip`).
 
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use clap::Parser;
+use clap::{Args, Parser, Subcommand};
 use eligo::mock::MockBackend;
 use eligo::{Backend, GenerateConfig, Image, RerollPolicy, Scorer, best_of_n};
 
@@ -24,6 +21,21 @@ use eligo::{Backend, GenerateConfig, Image, RerollPolicy, Scorer, best_of_n};
 #[derive(Debug, Parser)]
 #[command(name = "eligo", version, about)]
 struct Cli {
+    #[command(subcommand)]
+    command: Command,
+}
+
+#[derive(Debug, Subcommand)]
+enum Command {
+    /// Generate N candidates and keep the best (best-of-N selection).
+    Generate(GenerateArgs),
+    /// Rank images in a directory by visual similarity to a query image.
+    #[cfg(feature = "clip")]
+    Similar(SimilarArgs),
+}
+
+#[derive(Debug, Args)]
+struct GenerateArgs {
     /// Text prompt to generate from.
     prompt: String,
 
@@ -43,8 +55,7 @@ struct Cli {
     #[arg(long)]
     out: Option<PathBuf>,
 
-    /// With --out, also save every candidate (suffixed `_0`, `_1`, … and
-    /// `_best`), so you can see what the judge chose between.
+    /// With --out, also save every candidate (suffixed `_0`, `_1`, … and `_best`).
     #[arg(long)]
     save_all: bool,
 
@@ -84,26 +95,55 @@ struct Cli {
     clip_tokenizer: Option<PathBuf>,
 }
 
+/// Arguments for the `similar` subcommand.
+#[cfg(feature = "clip")]
+#[derive(Debug, Args)]
+struct SimilarArgs {
+    /// Query image: results are ranked by similarity to this.
+    query: PathBuf,
+
+    /// Directory of candidate images to search.
+    dir: PathBuf,
+
+    /// How many results to show.
+    #[arg(short = 'k', long, default_value_t = 5)]
+    top: usize,
+
+    /// CLIP `model.onnx`.
+    #[arg(long)]
+    clip_model: PathBuf,
+
+    /// CLIP `tokenizer.json`.
+    #[arg(long)]
+    clip_tokenizer: PathBuf,
+}
+
 fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .init();
 
-    let cli = Cli::parse();
+    match Cli::parse().command {
+        Command::Generate(args) => run_generate(args),
+        #[cfg(feature = "clip")]
+        Command::Similar(args) => run_similar(args),
+    }
+}
 
-    let cfg = GenerateConfig::new(&cli.prompt)
-        .with_candidates(cli.candidates)
-        .with_seed(cli.seed)
-        .with_reroll(if cli.reroll_worst {
+fn run_generate(args: GenerateArgs) -> Result<()> {
+    let cfg = GenerateConfig::new(&args.prompt)
+        .with_candidates(args.candidates)
+        .with_seed(args.seed)
+        .with_reroll(if args.reroll_worst {
             RerollPolicy::RerollWorstOnce
         } else {
             RerollPolicy::None
         });
 
-    let (backend, backend_name) = select_backend(&cli)?;
-    let (mut scorer, mut scorer_name) = select_scorer(&cli)?;
-    if cli.quality_weight > 0.0 {
-        scorer = Box::new(eligo::QualityWeighted::new(scorer, cli.quality_weight));
+    let (backend, backend_name) = select_backend(&args)?;
+    let (mut scorer, mut scorer_name) = select_scorer(&args)?;
+    if args.quality_weight > 0.0 {
+        scorer = Box::new(eligo::QualityWeighted::new(scorer, args.quality_weight));
         scorer_name = "blended with quality";
     }
     eprintln!("backend: {backend_name}  |  scorer: {scorer_name}");
@@ -119,8 +159,8 @@ fn main() -> Result<()> {
     let best = selection.best();
     println!("chosen: seed={} score={:.4}", best.seed, best.score);
 
-    if let Some(path) = cli.out {
-        if cli.save_all {
+    if let Some(path) = args.out {
+        if args.save_all {
             for (i, c) in selection.all.iter().enumerate() {
                 let p = numbered(&path, i, i == selection.best_index);
                 write_image(&c.image, &p).with_context(|| format!("writing {}", p.display()))?;
@@ -136,40 +176,88 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+/// Rank images in a directory by CLIP similarity to the query image.
+#[cfg(feature = "clip")]
+fn run_similar(args: SimilarArgs) -> Result<()> {
+    use eligo::{ClipEmbedder, cosine_similarity};
+
+    let embedder = ClipEmbedder::from_files(&args.clip_model, &args.clip_tokenizer)
+        .context("loading CLIP embedder")?;
+
+    let query = Image::open(&args.query)
+        .with_context(|| format!("opening query {}", args.query.display()))?;
+    let query_vec = embedder.embed_image(&query).context("embedding query")?;
+
+    let mut scored: Vec<(f32, PathBuf)> = Vec::new();
+    for entry in std::fs::read_dir(&args.dir)
+        .with_context(|| format!("reading directory {}", args.dir.display()))?
+    {
+        let path = entry?.path();
+        if !is_image_file(&path) {
+            continue;
+        }
+        let Ok(img) = Image::open(&path) else {
+            eprintln!("skipping unreadable {}", path.display());
+            continue;
+        };
+        let vec = embedder.embed_image(&img)?;
+        scored.push((cosine_similarity(&query_vec, &vec), path));
+    }
+
+    scored.sort_by(|a, b| b.0.total_cmp(&a.0));
+    println!("most similar to {}:", args.query.display());
+    for (sim, path) in scored.iter().take(args.top) {
+        println!("  {sim:.4}  {}", path.display());
+    }
+    if scored.is_empty() {
+        println!("  (no images found in {})", args.dir.display());
+    }
+    Ok(())
+}
+
+/// True if the path has a raster-image extension we can decode.
+#[cfg(feature = "clip")]
+fn is_image_file(path: &Path) -> bool {
+    matches!(
+        path.extension().and_then(|e| e.to_str()).map(str::to_ascii_lowercase).as_deref(),
+        Some("png" | "jpg" | "jpeg" | "webp" | "bmp" | "gif" | "tif" | "tiff")
+    )
+}
+
+/// Pick the backend: real Stable Diffusion when built with `--features sd` and
+/// given model paths, otherwise the deterministic mock.
+fn select_backend(args: &GenerateArgs) -> Result<(Box<dyn Backend>, &'static str)> {
+    #[cfg(feature = "sd")]
+    if let (Some(dir), Some(tokenizer)) = (&args.sd_model_dir, &args.sd_tokenizer) {
+        let backend = eligo::SdBackend::from_dir(dir, tokenizer, args.steps, args.guidance)
+            .context("loading SD backend")?;
+        return Ok((Box::new(backend), "Stable Diffusion (ONNX Runtime)"));
+    }
+
+    let _ = args;
+    Ok((Box::new(MockBackend::default()), "mock (deterministic)"))
+}
+
+/// Pick the scorer: the real CLIP reward when built with `--features clip` and
+/// given model paths, otherwise the deterministic mock.
+fn select_scorer(args: &GenerateArgs) -> Result<(Box<dyn Scorer>, &'static str)> {
+    #[cfg(feature = "clip")]
+    if let (Some(model), Some(tokenizer)) = (&args.clip_model, &args.clip_tokenizer) {
+        let scorer =
+            eligo::ClipScorer::from_files(model, tokenizer).context("loading CLIP scorer")?;
+        return Ok((Box::new(scorer), "CLIP (ONNX Runtime)"));
+    }
+
+    let _ = args;
+    Ok((Box::new(eligo::mock::MockScorer), "mock (deterministic)"))
+}
+
 /// Insert `_<index>` (and `_best`) before the file extension of `path`.
 fn numbered(path: &Path, index: usize, is_best: bool) -> PathBuf {
     let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("png");
     let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("out");
     let tag = if is_best { "_best" } else { "" };
     path.with_file_name(format!("{stem}_{index}{tag}.{ext}"))
-}
-
-/// Pick the backend: real Stable Diffusion when built with `--features sd` and
-/// given model paths, otherwise the deterministic mock.
-fn select_backend(cli: &Cli) -> Result<(Box<dyn Backend>, &'static str)> {
-    #[cfg(feature = "sd")]
-    if let (Some(dir), Some(tokenizer)) = (&cli.sd_model_dir, &cli.sd_tokenizer) {
-        let backend = eligo::SdBackend::from_dir(dir, tokenizer, cli.steps, cli.guidance)
-            .context("loading SD backend")?;
-        return Ok((Box::new(backend), "Stable Diffusion (ONNX Runtime)"));
-    }
-
-    let _ = cli;
-    Ok((Box::new(MockBackend::default()), "mock (deterministic)"))
-}
-
-/// Pick the scorer: the real CLIP reward when built with `--features clip` and
-/// given model paths, otherwise the deterministic mock.
-fn select_scorer(cli: &Cli) -> Result<(Box<dyn Scorer>, &'static str)> {
-    #[cfg(feature = "clip")]
-    if let (Some(model), Some(tokenizer)) = (&cli.clip_model, &cli.clip_tokenizer) {
-        let scorer =
-            eligo::ClipScorer::from_files(model, tokenizer).context("loading CLIP scorer")?;
-        return Ok((Box::new(scorer), "CLIP (ONNX Runtime)"));
-    }
-
-    let _ = cli;
-    Ok((Box::new(eligo::mock::MockScorer), "mock (deterministic)"))
 }
 
 /// Write the winning image: PNG when the extension is `.png` and an image

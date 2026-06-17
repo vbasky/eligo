@@ -43,6 +43,17 @@ impl Image {
         buf.save_with_format(path.as_ref(), image::ImageFormat::Png)
             .map_err(|e| crate::Error::Backend(format!("saving PNG: {e}")))
     }
+
+    /// Load an image from a file (any format the `image` crate decodes),
+    /// converting to RGB8. Available with the `clip`/`sd` features.
+    #[cfg(any(feature = "clip", feature = "sd"))]
+    pub fn open(path: impl AsRef<std::path::Path>) -> Result<Self> {
+        let rgb = image::open(path.as_ref())
+            .map_err(|e| crate::Error::Backend(format!("opening image: {e}")))?
+            .to_rgb8();
+        let (w, h) = rgb.dimensions();
+        Self::new(w, h, rgb.into_raw())
+    }
 }
 
 /// A source of generated images.

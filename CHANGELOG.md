@@ -34,6 +34,15 @@ The release workflow extracts the notes for a version from the matching
 - M3: no-reference quality — `quality_score` + `QualityScorer` (Laplacian
   sharpness + RMS contrast, parameter-free, in the core), and `QualityWeighted`
   to blend it with any scorer. CLI `--quality-weight` and `--save-all`.
+- M4: `ClipEmbedder` (image/text → L2-normalized embedding, `embed_both`,
+  `image_similarity`) factored out of `ClipScorer`; `Image::open` for loading
+  files. `similar` CLI subcommand ranks a folder by CLIP image↔image similarity
+  (the basis for "more like this" / recommendations).
+
+### Changed
+
+- CLI now uses subcommands: `eligo generate <prompt> …` (was the bare
+  `eligo <prompt> …`) and `eligo similar <query> <dir> …`.
 
 ## [0.1.0] - 2026-06-17
 
