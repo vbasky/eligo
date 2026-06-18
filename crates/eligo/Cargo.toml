@@ -25,4 +25,4 @@ thiserror.workspace = true
 ort = { version = "2.0.0-rc.12", optional = true, features = ["ndarray"] }
 ndarray = { version = "0.17", optional = true }
 image = { version = "0.25", optional = true }
-tokenizers = { version = "0.21", optional = true }
+tokenizers = { version = "0.23", optional = true }
