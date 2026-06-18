@@ -27,15 +27,7 @@ Give it a prompt and it:
    that returns a number; higher is better).
 3. **Selects** the highest-scoring candidate and returns it.
 
-```text
-"a red bicycle"
-      │
-      ▼
-  ┌─────────┐   n candidates   ┌─────────┐   reward per image   ┌────────┐
-  │ Backend │ ───────────────► │ Scorer  │ ──────────────────►  │ argmax │ ─►  winner
-  │ (artist)│                  │ (judge) │                      └────────┘
-  └─────────┘                  └─────────┘
-```
+![eligo selection loop: a prompt feeds the Backend (the artist), which produces n candidate images; the Scorer (the judge) gives each a reward; argmax picks the winner](docs/selection-loop.svg)
 
 That generate → score → select loop is the smallest honest **agentic** pattern:
 a numeric reward drives a decision. An optional bounded re-roll regenerates the
