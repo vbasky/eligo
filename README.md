@@ -49,7 +49,7 @@ recommendation service — but its parts are the foundation you build those on
 
 ## Install / layout
 
-```
+```bash
 crates/
   eligo/       # library: the loop, traits, scorers, embedder
   eligo-cli/   # binary (clap), installs as `eligo`
