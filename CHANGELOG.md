@@ -9,6 +9,21 @@ The release workflow extracts the notes for a version from the matching
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-06-20
+
+### Changed
+
+- `SdBackend::unet_eps`: replaced `cond.clone()` + `Tensor::from_array` with
+  `TensorRef::from_array_view` — the text conditioning tensor is now borrowed
+  instead of cloned on every denoising step. The surrounding `latents.to_vec()`
+  and `Array1::from_elem` still allocate once per step, but the former ~236 KB
+  clone per call is eliminated.
+- `Image::save_png`: replaced `RgbImage::from_raw(self.rgb.clone())` with
+  `image::save_buffer(…, &self.rgb, …)` — a borrow-based API that encodes directly
+  from the stored pixel buffer with no intermediate copy.
+- `Error::Empty`: marked `#[doc(hidden)]` and documented as reserved for future
+  internal use; currently unreachable due to upstream config validation.
+
 ## [0.1.3] - 2026-06-20
 
 ### Fixed

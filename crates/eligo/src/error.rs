@@ -20,6 +20,9 @@ pub enum Error {
     Scorer(String),
 
     /// Generation completed but produced no candidates to choose from.
+    /// Currently unreachable in normal flow (config validation rejects zero
+    /// candidates); reserved for future re-roll logic that may empty the list.
     #[error("no candidates were produced")]
+    #[doc(hidden)]
     Empty,
 }

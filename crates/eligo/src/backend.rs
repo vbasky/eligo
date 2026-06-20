@@ -39,9 +39,7 @@ impl Image {
     /// pull in the `image` crate); the base build has no image encoder.
     #[cfg(any(feature = "clip", feature = "sd"))]
     pub fn save_png(&self, path: impl AsRef<std::path::Path>) -> Result<()> {
-        let buf = image::RgbImage::from_raw(self.width, self.height, self.rgb.clone())
-            .ok_or_else(|| crate::Error::Backend("image buffer size mismatch".into()))?;
-        buf.save_with_format(path.as_ref(), image::ImageFormat::Png)
+        image::save_buffer(path.as_ref(), &self.rgb, self.width, self.height, image::ColorType::Rgb8)
             .map_err(|e| crate::Error::Backend(format!("saving PNG: {e}")))
     }
 

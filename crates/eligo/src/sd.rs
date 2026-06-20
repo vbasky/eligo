@@ -21,7 +21,7 @@ use std::sync::Mutex;
 
 use ndarray::{Array1, Array2, Array3, Array4};
 use ort::session::Session;
-use ort::value::Tensor;
+use ort::value::{Tensor, TensorRef};
 
 use crate::{Backend, Error, Image, Result};
 
@@ -131,18 +131,7 @@ impl SdBackend {
     }
 
     /// Predict noise from the UNet for one (latent, timestep, conditioning).
-    /// `cond_flat` is the text encoder output flattened; `cond_shape` is its
-    /// original `(1, ctx_len, hidden_size)` shape. The data is cloned into a
-    /// fresh tensor on each call — this is inherent to the ONNX Runtime API
-    /// (session inputs are consumed), and the overhead is negligible relative
-    /// to inference cost.
-    fn unet_eps(
-        &self,
-        latents: &[f32],
-        timestep: i64,
-        cond_flat: &[f32],
-        cond_shape: &[usize],
-    ) -> Result<Vec<f32>> {
+    fn unet_eps(&self, latents: &[f32], timestep: i64, cond: &Array3<f32>) -> Result<Vec<f32>> {
         let sample = Array4::from_shape_vec(
             (1, LATENT_CHANNELS, LATENT_SIZE, LATENT_SIZE),
             latents.to_vec(),
@@ -151,19 +140,14 @@ impl SdBackend {
         let sample = Tensor::from_array(sample).map_err(|e| Error::Backend(e.to_string()))?;
         let ts = Tensor::from_array(Array1::<i64>::from_elem(1, timestep))
             .map_err(|e| Error::Backend(e.to_string()))?;
-        let shape: [usize; 3] = [cond_shape[0], cond_shape[1], cond_shape[2]];
-        let hidden = Tensor::from_array(
-            Array3::from_shape_vec(shape, cond_flat.to_vec())
-                .map_err(|e| Error::Backend(format!("cond reshape: {e}")))?,
-        )
-        .map_err(|e| Error::Backend(e.to_string()))?;
 
         let mut session = lock(&self.unet)?;
         let outputs = session
             .run(ort::inputs![
                 "sample" => sample,
                 "timestep" => ts,
-                "encoder_hidden_states" => hidden,
+                "encoder_hidden_states" => TensorRef::from_array_view(cond)
+                    .map_err(|e| Error::Backend(format!("cond tensor: {e}")))?,
             ])
             .map_err(|e| Error::Backend(format!("unet: {e}")))?;
         Ok(first_tensor(&outputs)?.1)
@@ -204,17 +188,12 @@ impl Backend for SdBackend {
         let cond = self.encode_text(prompt)?;
         let uncond = self.encode_text("")?;
 
-        let cond_flat = cond.as_standard_layout().to_owned().into_raw_vec();
-        let uncond_flat = uncond.as_standard_layout().to_owned().into_raw_vec();
-        let cond_shape = cond.shape().to_vec();
-        let uncond_shape = uncond.shape().to_vec();
-
         let n = LATENT_CHANNELS * LATENT_SIZE * LATENT_SIZE;
         let mut latents = standard_normal(seed, n);
 
         for &timestep in &self.scheduler.timesteps {
-            let eps_uncond = self.unet_eps(&latents, timestep, &uncond_flat, &uncond_shape)?;
-            let eps_cond = self.unet_eps(&latents, timestep, &cond_flat, &cond_shape)?;
+            let eps_uncond = self.unet_eps(&latents, timestep, &uncond)?;
+            let eps_cond = self.unet_eps(&latents, timestep, &cond)?;
             let eps: Vec<f32> = eps_uncond
                 .iter()
                 .zip(&eps_cond)
