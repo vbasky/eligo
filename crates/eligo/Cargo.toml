@@ -1,6 +1,6 @@
 [package]
 name = "eligo"
-version = "0.1.4"
+version = "0.1.5"
 description = "Best-of-N image generation that selects the best candidate by measurable reward."
 edition.workspace = true
 rust-version.workspace = true

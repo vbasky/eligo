@@ -31,7 +31,7 @@ codegen-units = 1
 
 [workspace.dependencies]
 # Internal crates
-eligo = { path = "crates/eligo", version = "0.1.4" }
+eligo = { path = "crates/eligo", version = "0.1.5" }
 
 # Common third-party — trim to what you actually use.
 anyhow = "1"
