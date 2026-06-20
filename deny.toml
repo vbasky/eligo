@@ -20,6 +20,9 @@ allow = [
     "ISC",
     "Unicode-3.0",
     "Zlib",
+    # Permissive licenses pulled in only by the optional `clip`/`sd` ML deps:
+    "NCSA",                # libfuzzer-sys (via image -> ravif -> rav1e); OSI-approved, FSF-free
+    "CDLA-Permissive-2.0", # webpki-root-certs (via ort -> ureq); permissive cert-data license
 ]
 confidence-threshold = 0.8
 
