@@ -6,6 +6,7 @@
 
 /// L2-normalize a vector in place. A zero vector is left unchanged (its norm is
 /// zero, so there is nothing to scale).
+#[inline]
 pub fn l2_normalize(v: &mut [f32]) {
     let norm = v.iter().map(|x| x * x).sum::<f32>().sqrt();
     if norm > 0.0 {
@@ -21,6 +22,7 @@ pub fn l2_normalize(v: &mut [f32]) {
 /// callers treat that as "no signal" rather than an error, since it only
 /// happens for degenerate embeddings.
 #[must_use = "cosine similarity is a pure computation; the result should be used"]
+#[inline]
 pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     if a.len() != b.len() {
         return 0.0;

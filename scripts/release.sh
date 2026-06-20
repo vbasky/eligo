@@ -26,7 +26,16 @@ CRATES=(
 )
 
 # ── pre-flight ──────────────────────────────────────────────────────────────
-[ "$(git rev-parse --abbrev-ref HEAD)" = "main" ] || { echo "✗ not on main"; exit 1; }
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+# Upstream default may differ per repo; resolve the remote HEAD to compare.
+REMOTE_DEFAULT="$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|.*/||')"
+if [ -n "${REMOTE_DEFAULT}" ] && [ "${BRANCH}" != "${REMOTE_DEFAULT}" ]; then
+    echo "✗ not on ${REMOTE_DEFAULT} (current: ${BRANCH})"
+    exit 1
+elif [ -z "${REMOTE_DEFAULT}" ] && [ "${BRANCH}" != "main" ]; then
+    echo "✗ cannot resolve remote default branch; refusing to release from ${BRANCH}"
+    exit 1
+fi
 [ -z "$(git status --porcelain)" ]                || { echo "✗ working tree not clean — commit or stash first"; exit 1; }
 git rev-parse "$TAG" >/dev/null 2>&1              && { echo "✗ tag $TAG already exists"; exit 1; }
 

@@ -32,6 +32,7 @@ pub fn best_of_n(
 }
 
 /// Generate and score a single candidate.
+#[inline]
 fn generate_one(
     backend: &dyn Backend,
     scorer: &dyn Scorer,
@@ -63,6 +64,7 @@ fn reroll_worst_once(
 }
 
 /// Index of the highest-scoring candidate (NaN scores sort last).
+#[inline]
 fn argmax_by_score(candidates: &[Candidate]) -> Option<usize> {
     candidates
         .iter()
@@ -72,6 +74,7 @@ fn argmax_by_score(candidates: &[Candidate]) -> Option<usize> {
 }
 
 /// Index of the lowest-scoring candidate (NaN scores sort first).
+#[inline]
 fn argmin_by_score(candidates: &[Candidate]) -> Option<usize> {
     candidates
         .iter()

@@ -23,6 +23,7 @@ pub struct Image {
 impl Image {
     /// Construct an image, validating that the buffer length matches the
     /// declared dimensions.
+    #[inline]
     pub fn new(width: u32, height: u32, rgb: Vec<u8>) -> Result<Self> {
         let expected = width as usize * height as usize * 3;
         if rgb.len() != expected {

@@ -68,10 +68,12 @@ fn laplacian_variance(luma: &[f32], w: usize, h: usize) -> f32 {
 }
 
 /// Standard deviation of a slice (RMS contrast when applied to luma).
+#[inline]
 fn std_dev(v: &[f32]) -> f32 {
     variance(v).sqrt()
 }
 
+#[inline]
 fn variance(v: &[f32]) -> f32 {
     if v.is_empty() {
         return 0.0;
@@ -97,6 +99,14 @@ impl Scorer for QualityScorer {
 pub struct QualityWeighted {
     base: Box<dyn Scorer>,
     weight: f32,
+}
+
+impl std::fmt::Debug for QualityWeighted {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("QualityWeighted")
+            .field("weight", &self.weight)
+            .finish_non_exhaustive()
+    }
 }
 
 impl QualityWeighted {

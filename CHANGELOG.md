@@ -9,6 +9,31 @@ The release workflow extracts the notes for a version from the matching
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-06-20
+
+### Fixed
+
+- `ClipEmbedder::embed_both`: replaced fragile ordered-index extraction with
+  `.pop()` so the method is robust to ONNX graph output reordering.
+- `SdBackend::generate`: pre-flatten text conditioning tensors before the
+  denoising loop — the data is still cloned once per step (inherent to the ONNX
+  Runtime input API) but the `Array3` shape metadata is computed only once.
+
+### Added
+
+- `Debug` implementations for `ClipEmbedder`, `ClipScorer`, `SdBackend`, and
+  `QualityWeighted`. ONNX sessions are opaque; `SdBackend` reports steps and
+  guidance scale; `QualityWeighted` reports its blend weight.
+- `#[inline]` hints on hot-path functions: `l2_normalize`, `cosine_similarity`,
+  `Image::new`, `generate_one`, `argmax_by_score`, `argmin_by_score`, `std_dev`,
+  `variance`.
+
+### Changed
+
+- `is_image_file` is now always available (was gated behind `#[cfg(feature = "clip")]`).
+- `release.sh`: the pre-flight branch check now resolves the remote default
+  branch instead of hardcoding `main`.
+
 ## [0.1.2] - 2026-06-20
 
 ### Fixed

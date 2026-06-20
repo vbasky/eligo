@@ -43,11 +43,20 @@ const CTX_LEN: usize = 77;
 const EOT_TOKEN: i64 = 49407;
 
 /// Turns images and prompts into L2-normalized CLIP embeddings.
+///
+/// The ONNX session is wrapped in a `Mutex`, so the `Debug` representation is
+/// intentionally opaque (the session type itself is not `Debug`).
 pub struct ClipEmbedder {
     // `Session::run` needs unique access; a Mutex keeps `&self` methods usable
     // while leaving the embedder `Send + Sync` for use across workers.
     session: Mutex<Session>,
     tokenizer: Tokenizer,
+}
+
+impl std::fmt::Debug for ClipEmbedder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ClipEmbedder").finish_non_exhaustive()
+    }
 }
 
 impl ClipEmbedder {
@@ -90,8 +99,8 @@ impl ClipEmbedder {
     pub fn embed_both(&self, text: &str, image: &Image) -> Result<(Vec<f32>, Vec<f32>)> {
         let (ids, mask) = self.tokenize(text)?;
         let mut outs = self.run(preprocess(image)?, ids, mask, &["image_embeds", "text_embeds"])?;
-        let mut txt = outs.remove(1);
-        let mut img = outs.remove(0);
+        let mut txt = outs.pop().expect("text_embeds not in model outputs");
+        let mut img = outs.pop().expect("image_embeds not in model outputs");
         l2_normalize(&mut img);
         l2_normalize(&mut txt);
         Ok((img, txt))
@@ -151,8 +160,16 @@ impl ClipEmbedder {
 }
 
 /// A [`Scorer`] backed by a [`ClipEmbedder`]: reward = cosine(image, text).
+///
+/// The inner [`ClipEmbedder`] is opaque (see its `Debug` documentation).
 pub struct ClipScorer {
     embedder: ClipEmbedder,
+}
+
+impl std::fmt::Debug for ClipScorer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ClipScorer").finish_non_exhaustive()
+    }
 }
 
 impl ClipScorer {

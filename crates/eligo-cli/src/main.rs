@@ -216,7 +216,7 @@ fn run_similar(args: SimilarArgs) -> Result<()> {
 }
 
 /// True if the path has a raster-image extension we can decode.
-#[cfg(feature = "clip")]
+#[allow(dead_code)]
 fn is_image_file(path: &Path) -> bool {
     matches!(
         path.extension().and_then(|e| e.to_str()).map(str::to_ascii_lowercase).as_deref(),
