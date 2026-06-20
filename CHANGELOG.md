@@ -9,6 +9,13 @@ The release workflow extracts the notes for a version from the matching
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-06-20
+
+### Fixed
+
+- README: replaced relative `docs/selection-loop.svg` path with absolute GitHub
+  raw URL so the selection-loop diagram renders on crates.io.
+
 ## [0.1.4] - 2026-06-20
 
 ### Changed
