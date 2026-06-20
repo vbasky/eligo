@@ -9,6 +9,24 @@ The release workflow extracts the notes for a version from the matching
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-06-20
+
+### Fixed
+
+- `Cargo.toml`: added `readme` field to the library crate so the README is visible
+  on crates.io.
+- `release.sh`: replaced `{{project-name}}` template placeholders with `eligo`.
+- `SdBackend::from_dir`: reject `steps == 0` with an error instead of panicking
+  on division-by-zero in the DDIM scheduler.
+- Removed unused workspace dependencies (`serde`, `serde_json`, `tokio`).
+- `quality.rs`: avoid potential `u32` overflow in `width * height` cast.
+
+### Added
+
+- `#[must_use]` attributes on `best_of_n`, `cosine_similarity`, `quality_score`,
+  `Backend::generate`, `ClipEmbedder::embed_image`, `ClipEmbedder::embed_text`,
+  `ClipEmbedder::embed_both`, and `ClipEmbedder::image_similarity`.
+
 ## [0.1.1] - 2026-06-20
 
 ### Changed

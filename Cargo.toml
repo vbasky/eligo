@@ -36,9 +36,6 @@ eligo = { path = "crates/eligo", version = "0.1.1" }
 # Common third-party — trim to what you actually use.
 anyhow = "1"
 thiserror = "2"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 clap = { version = "4", features = ["derive"] }

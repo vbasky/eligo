@@ -9,6 +9,7 @@ use crate::{Backend, Candidate, Error, GenerateConfig, RerollPolicy, Result, Sco
 /// reproducible. If [`RerollPolicy::RerollWorstOnce`] is set, the lowest-scoring
 /// candidate is regenerated once with a fresh seed and the better of the two is
 /// kept in its place — exactly one extra generation, never a loop.
+#[must_use = "the selection result should be consumed"]
 pub fn best_of_n(
     backend: &dyn Backend,
     scorer: &dyn Scorer,

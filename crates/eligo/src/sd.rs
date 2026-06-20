@@ -55,6 +55,9 @@ impl SdBackend {
         steps: usize,
         guidance_scale: f32,
     ) -> Result<Self> {
+        if steps == 0 {
+            return Err(Error::Backend("denoising steps must be >= 1".into()));
+        }
         let dir = model_dir.as_ref();
         let debug = std::env::var_os("ELIGO_SD_DEBUG").is_some();
         let load = |rel: &str| -> Result<Session> {

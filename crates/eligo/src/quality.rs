@@ -28,6 +28,7 @@ const SHARPNESS_WEIGHT: f32 = 0.7;
 ///
 /// A flat or heavily blurred image scores near 0; a crisp, well-contrasted one
 /// scores high.
+#[must_use = "quality_score is a pure computation; the result should be used"]
 pub fn quality_score(image: &Image) -> f32 {
     let (w, h, luma) = to_luma(image);
     let sharpness = laplacian_variance(&luma, w, h);
@@ -40,7 +41,7 @@ pub fn quality_score(image: &Image) -> f32 {
 
 /// Convert to luma in `[0, 1]`, returning `(width, height, pixels)`.
 fn to_luma(image: &Image) -> (usize, usize, Vec<f32>) {
-    let n = (image.width * image.height) as usize;
+    let n = image.width as usize * image.height as usize;
     let mut luma = Vec::with_capacity(n);
     for px in image.rgb.chunks_exact(3) {
         let (r, g, b) = (px[0] as f32, px[1] as f32, px[2] as f32);

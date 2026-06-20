@@ -62,6 +62,7 @@ impl ClipEmbedder {
     }
 
     /// Embed an image into an L2-normalized vector (the `image_embeds` output).
+    #[must_use = "the embedding is the entire result of this function"]
     pub fn embed_image(&self, image: &Image) -> Result<Vec<f32>> {
         let (ids, mask) = self.tokenize("")?;
         let mut outs = self.run(preprocess(image)?, ids, mask, &["image_embeds"])?;
@@ -72,6 +73,7 @@ impl ClipEmbedder {
 
     /// Embed a text prompt into an L2-normalized vector (the `text_embeds`
     /// output).
+    #[must_use = "the embedding is the entire result of this function"]
     pub fn embed_text(&self, text: &str) -> Result<Vec<f32>> {
         let (ids, mask) = self.tokenize(text)?;
         let blank = Array4::<f32>::zeros((1, 3, IMAGE_SIZE as usize, IMAGE_SIZE as usize));
@@ -84,6 +86,7 @@ impl ClipEmbedder {
     /// Embed both an image and a prompt in a single model run, returning
     /// `(image_embed, text_embed)`, each L2-normalized. More efficient than
     /// calling [`Self::embed_image`] and [`Self::embed_text`] separately.
+    #[must_use = "the embeddings are the entire result of this function"]
     pub fn embed_both(&self, text: &str, image: &Image) -> Result<(Vec<f32>, Vec<f32>)> {
         let (ids, mask) = self.tokenize(text)?;
         let mut outs = self.run(preprocess(image)?, ids, mask, &["image_embeds", "text_embeds"])?;
@@ -95,6 +98,7 @@ impl ClipEmbedder {
     }
 
     /// Cosine similarity between two images, in `[-1, 1]` (1 = identical).
+    #[must_use = "the similarity value is the entire result of this function"]
     pub fn image_similarity(&self, a: &Image, b: &Image) -> Result<f32> {
         Ok(cosine_similarity(&self.embed_image(a)?, &self.embed_image(b)?))
     }

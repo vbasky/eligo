@@ -20,6 +20,7 @@ pub fn l2_normalize(v: &mut [f32]) {
 /// Returns `0.0` if the lengths differ or either vector has zero magnitude —
 /// callers treat that as "no signal" rather than an error, since it only
 /// happens for degenerate embeddings.
+#[must_use = "cosine similarity is a pure computation; the result should be used"]
 pub fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
     if a.len() != b.len() {
         return 0.0;

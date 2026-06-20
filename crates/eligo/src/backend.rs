@@ -63,5 +63,6 @@ impl Image {
 /// is what makes the selection loop reproducible and testable.
 pub trait Backend {
     /// Generate a single image for `prompt` using `seed`.
+    #[must_use = "the generated image should be consumed"]
     fn generate(&self, prompt: &str, seed: u64) -> Result<Image>;
 }
