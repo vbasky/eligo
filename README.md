@@ -10,7 +10,7 @@ the best one.**
 [![docs.rs](https://img.shields.io/docsrs/eligo?logo=docsdotrs)](https://docs.rs/eligo)
 [![CI](https://img.shields.io/github/actions/workflow/status/vbasky/eligo/ci.yml?branch=main&logo=github&label=CI)](https://github.com/vbasky/eligo/actions)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
-[![MSRV](https://img.shields.io/badge/MSRV-1.85-blue)](https://www.rust-lang.org)
+[![MSRV](https://img.shields.io/badge/MSRV-1.85.1-blue)](https://www.rust-lang.org)
 
 ---
 
