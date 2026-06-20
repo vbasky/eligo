@@ -1,7 +1,8 @@
 //! No-reference image quality (M3) — a prompt-independent "is this clean and
 //! sharp?" signal, and a blend with any other [`Scorer`].
 //!
-//! The CLIP reward ([`crate::ClipScorer`]) answers "does this match the words?"
+//! The CLIP reward (`ClipScorer`, behind the `clip` feature) answers "does this
+//! match the words?"
 //! but a blurry, washed-out picture can still match the words. This adds the
 //! orthogonal question — "does it look good?" — so best-of-N can prefer a
 //! candidate that is *both* on-prompt and crisp.
