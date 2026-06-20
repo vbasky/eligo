@@ -39,8 +39,14 @@ impl Image {
     /// pull in the `image` crate); the base build has no image encoder.
     #[cfg(any(feature = "clip", feature = "sd"))]
     pub fn save_png(&self, path: impl AsRef<std::path::Path>) -> Result<()> {
-        image::save_buffer(path.as_ref(), &self.rgb, self.width, self.height, image::ColorType::Rgb8)
-            .map_err(|e| crate::Error::Backend(format!("saving PNG: {e}")))
+        image::save_buffer(
+            path.as_ref(),
+            &self.rgb,
+            self.width,
+            self.height,
+            image::ColorType::Rgb8,
+        )
+        .map_err(|e| crate::Error::Backend(format!("saving PNG: {e}")))
     }
 
     /// Load an image from a file (any format the `image` crate decodes),

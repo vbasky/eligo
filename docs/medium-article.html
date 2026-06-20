@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>eligo article</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">eligo article</h1>
+</header>
+<h1
+id="generate-many-keep-the-best-the-smallest-honest-agentic-loop-in-rust">Generate
+Many, Keep the Best: The Smallest Honest Agentic Loop, in Rust</h1>
+<p><em>How I built eligo — best-of-N image selection as two traits and
+one loop, with a real Stable Diffusion + CLIP stack on ONNX Runtime, in
+pure Rust.</em></p>
+<hr />
+<p>Image generators are random. Run the same prompt twice and you get
+two different pictures — one good, one junk. Everyone knows the
+workaround: generate a handful, eyeball them, keep the best. It works
+because <em>you</em> are the selection function.</p>
+<p><strong>eligo automates the picking.</strong> That's the entire
+pitch, and I kept it that small on purpose.</p>
+<p>The name is Latin for "I choose / I pick out" — the root of
+<em>elect</em> and <em>elite</em>. Out of many candidate images, elect
+the best one.</p>
+<h2 id="the-loop">The loop</h2>
+<p>Give eligo a prompt and it does three things:</p>
+<ol type="1">
+<li><strong>Generates</strong> <code>n</code> candidate images — the
+<em>artist</em>, a pluggable <code>Backend</code>.</li>
+<li><strong>Scores</strong> each one against the prompt — the
+<em>judge</em>, a pluggable <code>Scorer</code> that returns a number
+where higher is better.</li>
+<li><strong>Selects</strong> the highest-scoring candidate and returns
+it.</li>
+</ol>
+<p><img
+src="https://raw.githubusercontent.com/vbasky/eligo/main/docs/selection-loop.png"
+alt="eligo selection loop: a prompt feeds the Backend (the artist), which produces n candidate images; the Scorer (the judge) gives each a reward; argmax picks the winner" /></p>
+<p>That generate → score → select loop is the smallest <em>honest</em>
+<strong>agentic</strong> pattern: a numeric reward drives a decision.
+There's exactly one optional twist — a bounded re-roll — and that's the
+only loop in the whole system. There is no open-ended "keep refining
+until it's good," because that's the part of agentic systems that
+quietly burns money and rarely converges. eligo makes one decision and
+stops.</p>
+<h2 id="how-seeding-and-the-bounded-re-roll-work">How seeding and the
+bounded re-roll work</h2>
+<p>The interesting mechanics live in <code>best_of_n</code>, and they're
+deliberately boring in the best way.</p>
+<p>To produce <code>n</code> candidates from one prompt, the loop
+doesn't ask the backend for "something random" <code>n</code> times — it
+seeds candidate <em>i</em> with <code>seed + i</code>. That gives you
+<code>n</code> genuinely different images that are also <strong>fully
+reproducible</strong>: same prompt, same base seed, same <code>n</code>
+→ byte-identical run. For a generator, randomness is a feature; for a
+<em>pipeline</em>, reproducibility is non-negotiable, and the seeding
+scheme gives you both.</p>
+<p>Once all <code>n</code> are scored, selection is a plain
+<code>argmax</code> over the rewards. Then the one optional loop: with
+<code>--reroll-worst</code>, eligo regenerates the single lowest-scoring
+candidate <em>once</em> with a fresh seed, re-scores it, and keeps
+whichever of the two is better. That's it — one extra generation,
+bounded, predictable. It nudges the floor up without opening the door to
+an unbounded refinement spiral. You always know the maximum amount of
+work a run will do: <code>n</code> generations, or <code>n + 1</code>
+with re-roll.</p>
+<h2 id="two-traits-are-the-whole-surface">Two traits are the whole
+surface</h2>
+<p>Everything in eligo is an implementation of one of two traits, or a
+reuse of the embedder:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// The artist: prompt + seed → image.</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Backend <span class="op">{</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> generate(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> prompt<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span><span class="op">,</span> seed<span class="op">:</span> <span class="dt">u64</span>) <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span>Image<span class="op">&gt;;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">/// The judge: prompt + image → reward (higher is better).</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Scorer <span class="op">{</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> score(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> prompt<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span><span class="op">,</span> image<span class="op">:</span> <span class="op">&amp;</span>Image) <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span><span class="dt">f32</span><span class="op">&gt;;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">fn</span> best_of_n(backend<span class="op">:</span> <span class="op">&amp;</span><span class="kw">dyn</span> Backend<span class="op">,</span> scorer<span class="op">:</span> <span class="op">&amp;</span><span class="kw">dyn</span> Scorer<span class="op">,</span> cfg<span class="op">:</span> <span class="op">&amp;</span>GenerateConfig)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span>Selection<span class="op">&gt;;</span></span></code></pre></div>
+<p>That's the entire extension API. The loop handles seeding and
+selection; you bring an artist and a definition of "best." Want a
+different generator — SDXL, Flux, a hosted diffusion API, even a non-AI
+renderer? Implement <code>Backend</code>. Want to change what "best"
+means — aesthetics, face presence, brand-safety, NSFW filtering, OCR
+legibility, a target palette? Implement <code>Scorer</code>.</p>
+<h2 id="real-models-are-opt-in--the-default-build-runs-dry">Real models
+are opt-in — the default build runs dry</h2>
+<p>Here's a decision I'm happy with: the default build needs <strong>no
+AI models and no native runtime.</strong> It ships a deterministic mock
+backend and scorer, so the whole loop compiles, runs, and tests green
+out of the box. You can read and hack the selection logic without
+downloading a single weight or linking a native library.
+<code>MockBackend</code> and <code>MockScorer</code> aren't an
+afterthought — they're how the core stays understandable and how CI
+stays fast.</p>
+<p>Real models are opt-in cargo features:</p>
+<ul>
+<li><strong>Default build</strong> — a mock backend + mock scorer; no
+runtime, no weights.</li>
+<li><strong><code>clip</code></strong> — adds <code>ClipScorer</code>
+(the real judge) and <code>ClipEmbedder</code>; runs on ONNX Runtime
+(<code>ort</code>).</li>
+<li><strong><code>sd</code></strong> — adds <code>SdBackend</code>,
+Stable Diffusion txt2img (the real artist); also ONNX Runtime
+(<code>ort</code>).</li>
+</ul>
+<h2 id="inside-the-judge-how-clip-scoring-actually-works">Inside the
+judge: how CLIP scoring actually works</h2>
+<p>CLIP is the right tool for "does this image match these words"
+because it was trained to put images and their captions near each other
+in a shared embedding space. <code>ClipScorer</code> leans on exactly
+that:</p>
+<ol type="1">
+<li>Embed the prompt text into a vector with CLIP's text encoder.</li>
+<li>Embed the candidate image into a vector with CLIP's image
+encoder.</li>
+<li>L2-normalise both and take their <strong>cosine similarity</strong>
+— that scalar <em>is</em> the reward.</li>
+</ol>
+<p>A candidate that depicts the prompt lands near the prompt's text
+vector and scores high; an off-prompt image lands far away and scores
+low. No training, no fine-tuning, no reference image — just a dot
+product in a well-shaped space.</p>
+<p>The model is a standard ONNX export: a CLIP <code>model.onnx</code>
+plus its <code>tokenizer.json</code>. Running it through
+<code>ort</code> (ONNX Runtime) rather than a Python process is the
+whole point — the judge is a native call inside the same binary, no
+interpreter, no IPC, no <code>pip</code> environment to reproduce on a
+server.</p>
+<h2 id="inside-the-artist-stable-diffusion-as-three-onnx-graphs">Inside
+the artist: Stable Diffusion as three ONNX graphs</h2>
+<p><code>SdBackend</code> runs Stable Diffusion txt2img from standard
+diffusers ONNX exports — a directory with three graphs:</p>
+<ul>
+<li><strong><code>text_encoder</code></strong> turns the prompt into a
+conditioning embedding,</li>
+<li><strong><code>unet</code></strong> is the denoiser, run for
+<code>--steps</code> iterations to walk a noised latent toward an image
+that matches that conditioning,</li>
+<li><strong><code>vae_decoder</code></strong> turns the final latent
+into actual RGB pixels.</li>
+</ul>
+<p>The candidate's <code>seed</code> initialises the latent noise, which
+is why <code>seed + i</code> gives distinct-but-reproducible candidates.
+Put the artist and the judge together and eligo generates real images
+and keeps the one CLIP rates best:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cargo</span> run <span class="at">-p</span> eligo-cli <span class="at">--features</span> <span class="st">&quot;sd clip&quot;</span> <span class="at">--</span> generate <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;a photograph of a red apple on a wooden table&quot;</span> <span class="at">-n</span> 4 <span class="at">--steps</span> 20 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--sd-model-dir</span> <span class="op">&lt;</span>sd-onnx-dir<span class="op">&gt;</span> --sd-tokenizer <span class="op">&lt;</span>tokenizer.json<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--clip-model</span> <span class="op">&lt;</span>clip.onnx<span class="op">&gt;</span> --clip-tokenizer <span class="op">&lt;</span>tokenizer.json<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out</span> winner.png <span class="at">--save-all</span></span></code></pre></div>
+<p><code>--save-all</code> writes every candidate, not just the winner,
+so you can <em>see</em> what the judge chose between — invaluable when
+you're deciding whether the scorer is actually picking the image you'd
+pick.</p>
+<h2 id="matches-the-words-isnt-looks-good">"Matches the words" isn't
+"looks good"</h2>
+<p>CLIP answers one question: does this image match the prompt? But a
+blurry, washed-out image can still match the words. So eligo carries a
+second signal — a no-reference <strong>quality</strong> score built from
+sharpness and contrast, always in the core and needing no model — and
+lets you blend the two:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">eligo::</span><span class="op">{</span>ClipScorer<span class="op">,</span> QualityWeighted<span class="op">};</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> clip <span class="op">=</span> <span class="pp">ClipScorer::</span>from_files(<span class="st">&quot;clip.onnx&quot;</span><span class="op">,</span> <span class="st">&quot;tokenizer.json&quot;</span>)<span class="op">?;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">// 70% prompt-match, 30% image quality:</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> scorer <span class="op">=</span> <span class="pp">QualityWeighted::</span>new(<span class="dt">Box</span><span class="pp">::</span>new(clip)<span class="op">,</span> <span class="dv">0.3</span>)<span class="op">;</span></span></code></pre></div>
+<p>On the CLI that's <code>--quality-weight 0.3</code>. Raise it and
+eligo prefers crisp, detailed candidates even at a slight cost to
+literal prompt-match. The neat part: <code>QualityWeighted</code> is
+<em>itself</em> just a <code>Scorer</code> that wraps another
+<code>Scorer</code>. Composition is the extension mechanism — you don't
+need a plugin system when "combine two judges" is the same trait
+wrapping itself.</p>
+<h2 id="a-worked-example-encoding-a-business-rule-as-a-reward">A worked
+example: encoding a business rule as a reward</h2>
+<p>The power of the <code>Scorer</code> trait is that <strong>anything
+you can turn into a number is a reward.</strong> Suppose your brand
+palette is built around a warm amber, and out of four on-prompt
+candidates you want the one closest to that colour. That's not an AI
+problem — it's a <code>Scorer</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">eligo::</span><span class="op">{</span>Scorer<span class="op">,</span> Image<span class="op">,</span> <span class="dt">Result</span><span class="op">};</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">/// Reward images whose average colour is closest to a target brand colour.</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> BrandAffinity <span class="op">{</span> target<span class="op">:</span> [<span class="dt">f32</span><span class="op">;</span> <span class="dv">3</span>] <span class="op">}</span> <span class="co">// RGB, 0..1</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span> Scorer <span class="cf">for</span> BrandAffinity <span class="op">{</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> score(<span class="op">&amp;</span><span class="kw">self</span><span class="op">,</span> _prompt<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span><span class="op">,</span> image<span class="op">:</span> <span class="op">&amp;</span>Image) <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span><span class="dt">f32</span><span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> n <span class="op">=</span> (image<span class="op">.</span>rgb<span class="op">.</span>len() <span class="op">/</span> <span class="dv">3</span>) <span class="kw">as</span> <span class="dt">f32</span><span class="op">;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> <span class="kw">mut</span> sum <span class="op">=</span> [<span class="dv">0.0f32</span><span class="op">;</span> <span class="dv">3</span>]<span class="op">;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> px <span class="kw">in</span> image<span class="op">.</span>rgb<span class="op">.</span>chunks_exact(<span class="dv">3</span>) <span class="op">{</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>            sum[<span class="dv">0</span>] <span class="op">+=</span> px[<span class="dv">0</span>] <span class="kw">as</span> <span class="dt">f32</span><span class="op">;</span> sum[<span class="dv">1</span>] <span class="op">+=</span> px[<span class="dv">1</span>] <span class="kw">as</span> <span class="dt">f32</span><span class="op">;</span> sum[<span class="dv">2</span>] <span class="op">+=</span> px[<span class="dv">2</span>] <span class="kw">as</span> <span class="dt">f32</span><span class="op">;</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> mean <span class="op">=</span> [sum[<span class="dv">0</span>] <span class="op">/</span> n <span class="op">/</span> <span class="dv">255.0</span><span class="op">,</span> sum[<span class="dv">1</span>] <span class="op">/</span> n <span class="op">/</span> <span class="dv">255.0</span><span class="op">,</span> sum[<span class="dv">2</span>] <span class="op">/</span> n <span class="op">/</span> <span class="dv">255.0</span>]<span class="op">;</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> dist <span class="op">=</span> ((mean[<span class="dv">0</span>] <span class="op">-</span> <span class="kw">self</span><span class="op">.</span>target[<span class="dv">0</span>])<span class="op">.</span>powi(<span class="dv">2</span>)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>                  <span class="op">+</span> (mean[<span class="dv">1</span>] <span class="op">-</span> <span class="kw">self</span><span class="op">.</span>target[<span class="dv">1</span>])<span class="op">.</span>powi(<span class="dv">2</span>)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>                  <span class="op">+</span> (mean[<span class="dv">2</span>] <span class="op">-</span> <span class="kw">self</span><span class="op">.</span>target[<span class="dv">2</span>])<span class="op">.</span>powi(<span class="dv">2</span>))<span class="op">.</span>sqrt()<span class="op">;</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>        <span class="cn">Ok</span>(<span class="dv">1.0</span> <span class="op">-</span> dist) <span class="co">// closer to target = higher reward</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Drop it straight into the same loop — and because
+<code>QualityWeighted</code> composes, you could just as easily blend
+this with CLIP to get "on-prompt <em>and</em> on-brand":</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">eligo::</span><span class="op">{</span>best_of_n<span class="op">,</span> GenerateConfig<span class="op">};</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> amber <span class="op">=</span> BrandAffinity <span class="op">{</span> target<span class="op">:</span> [<span class="dv">0.85</span><span class="op">,</span> <span class="dv">0.55</span><span class="op">,</span> <span class="dv">0.10</span>] <span class="op">};</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> selection <span class="op">=</span> best_of_n(<span class="op">&amp;</span>my_backend<span class="op">,</span> <span class="op">&amp;</span>amber<span class="op">,</span> <span class="op">&amp;</span><span class="pp">GenerateConfig::</span>new(<span class="st">&quot;a coffee cup&quot;</span>))<span class="op">?;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="pp">println!</span>(<span class="st">&quot;winner seed = {}&quot;</span><span class="op">,</span> selection<span class="op">.</span>best()<span class="op">.</span>seed)<span class="op">;</span></span></code></pre></div>
+<p>That's the whole story: every selection policy you can imagine —
+brand-safety filters, face presence, palette targets, OCR legibility,
+"not too dark" — is a few lines returning an <code>f32</code>.</p>
+<h2 id="the-embeddings-do-double-duty">The embeddings do double
+duty</h2>
+<p>The same CLIP embeddings that judge prompt-match also measure
+image↔︎image similarity — the basis for "more like this," dedup, and
+content-based recommendations. <code>ClipEmbedder</code> is factored out
+so you can use the vectors directly, without going through the
+scorer:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">eligo::</span><span class="op">{</span>ClipEmbedder<span class="op">,</span> cosine_similarity<span class="op">};</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> embedder <span class="op">=</span> <span class="pp">ClipEmbedder::</span>from_files(<span class="st">&quot;clip.onnx&quot;</span><span class="op">,</span> <span class="st">&quot;tokenizer.json&quot;</span>)<span class="op">?;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> a <span class="op">=</span> embedder<span class="op">.</span>embed_image(<span class="op">&amp;</span>img_a)<span class="op">?;</span>   <span class="co">// image → L2-normalized vector</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> b <span class="op">=</span> embedder<span class="op">.</span>embed_image(<span class="op">&amp;</span>img_b)<span class="op">?;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> how_alike <span class="op">=</span> cosine_similarity(<span class="op">&amp;</span>a<span class="op">,</span> <span class="op">&amp;</span>b)<span class="op">;</span>          <span class="co">// in [-1, 1]</span></span></code></pre></div>
+<p>There's a <code>similar</code> subcommand that ranks a folder against
+a query image, and the clean way to build a recommender on top is a
+deliberate split of responsibilities: <strong>eligo provides the
+embedding and the similarity math; the consuming catalogue embeds each
+asset once, stores the vectors, keeps a nearest-neighbour index
+(brute-force cosine for thousands, an HNSW index for tens of thousands
+and up), and adds any per-user signals.</strong> Storage, indexing and
+personalization stay <em>outside</em> eligo so it remains a focused
+selection library rather than creeping into a database.</p>
+<h2 id="built-bottom-up">Built bottom-up</h2>
+<p>eligo grew in deliberate milestones, each one a complete, testable
+layer: the loop first (M0), then the real judge (M1 — CLIP), then the
+real artist (M2 — Stable Diffusion), then no-reference quality and
+blending (M3), then the embeddings and similarity that the judge already
+produced internally, factored out for reuse (M4). The order matters: the
+abstraction (two traits, one loop) existed and was tested against mocks
+<em>before</em> any model was wired in, which is why adding a backend or
+scorer never required touching the core.</p>
+<h2 id="bounded-on-purpose">Bounded on purpose</h2>
+<p>That's the whole philosophy. eligo owns the loop and the two
+contracts — <code>Backend</code> and <code>Scorer</code> — and nothing
+else. It is <strong>not</strong> a model zoo, not an image editor, not a
+recommendation service. It's the small, sharp piece those things are
+built <em>on</em>.</p>
+<p>Most "AI image" libraries grow until they do everything and you can't
+reason about any of it. I wanted the opposite: a focused selection
+library where the extension points are two trait methods, the core runs
+without a single model weight, the work per run is bounded and
+reproducible, and the one loop it does run is honest about being one
+decision — not an open-ended refinement spiral.</p>
+<h2 id="try-it">Try it</h2>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">just</span> run <span class="at">--</span> generate <span class="st">&quot;a lighthouse at dusk&quot;</span> <span class="at">-n</span> 5 <span class="at">--reroll-worst</span> <span class="at">--out</span> winner.ppm</span></code></pre></div>
+<p>That runs the mock loop — no models, instant. Add
+<code>--features "sd clip"</code> and point it at ONNX weights for the
+real thing.</p>
+<p>It's published: <code>cargo install eligo-cli</code>. Source and the
+full extension guide are on GitHub: <strong><a
+href="https://github.com/vbasky/eligo">github.com/vbasky/eligo</a></strong>.</p>
+<p>If you've been hand-picking the best of five generations, let the
+argmax do it.</p>
+</body>
+</html>
